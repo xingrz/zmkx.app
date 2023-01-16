@@ -6,6 +6,7 @@
     "baseUrl": ".",
     "types": [
       "node",
+      "w3c-web-usb",
     ],
     "paths": {
       "@/*": [
