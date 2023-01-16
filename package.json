@@ -9,6 +9,7 @@
     "postinstall": "npm run build:proto"
   },
   "dependencies": {
+    "@antv/g2plot": "^2.4.23",
     "ant-design-vue": "^3.2.15",
     "protobufjs": "^7.1.2",
     "vue": "^3.2.45"
