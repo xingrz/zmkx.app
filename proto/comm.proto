@@ -3,6 +3,7 @@ syntax = "proto2";
 enum Action {
   NOP = 0;
   VERSION = 1;
+  KNOB_STATUS = 2;
 }
 
 message MessageH2D { required Action action = 1; }
@@ -10,10 +11,21 @@ message MessageH2D { required Action action = 1; }
 message MessageD2H {
   required Action action = 1;
   optional Version version = 2;
+  optional KnobStatus knob_status = 3;
 }
 
 message Version {
   required string zephyr_version = 1;
   required string zmk_version = 2;
   required string app_version = 3;
+}
+
+message KnobStatus {
+  required uint32 timestamp = 1;
+  required uint32 control_mode = 2;
+  required float current_angle = 3;
+  required float current_velocity = 4;
+  required float target_angle = 5;
+  required float target_velocity = 6;
+  required float target_voltage = 7;
 }
