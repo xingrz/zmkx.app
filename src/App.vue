@@ -9,44 +9,47 @@
           连接设备
         </a-button>
       </div>
-      <a-menu mode="inline" :class="$style.nav" :disabled="!device">
-        <a-menu-item key="1">
+      <a-menu :selected-keys="page" mode="inline" :class="$style.nav" :disabled="!device" @select="navigate">
+        <a-menu-item key="about">
           <template #icon>
             <info-circle-outlined />
           </template>
           关于
         </a-menu-item>
-        <a-menu-item key="2">
+        <a-menu-item key="options">
           <template #icon>
             <setting-outlined />
           </template>
           选项
         </a-menu-item>
-        <a-menu-item key="3">
+        <a-menu-item key="eink">
           <template #icon>
             <project-outlined />
           </template>
           墨水屏
         </a-menu-item>
-        <a-sub-menu key="sub3">
+        <a-sub-menu key="advanced">
           <template #icon>
             <experiment-outlined />
           </template>
           <template #title>
             高级
           </template>
-          <a-menu-item key="9">电机参数</a-menu-item>
+          <a-menu-item key="knob">电机参数</a-menu-item>
         </a-sub-menu>
       </a-menu>
     </a-layout-sider>
-    <a-layout-content :style="{ padding: '20px' }">
-      Content
+    <a-layout-content :class="$style.main">
+      <router-view v-slot="{ Component }">
+        <component v-if="device" :is="Component" :device="device" />
+      </router-view>
     </a-layout-content>
   </a-layout>
 </template>
 
 <script lang="ts" setup>
-import { ref, watch } from 'vue';
+import { computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import {
   InfoCircleOutlined,
   SettingOutlined,
@@ -54,6 +57,13 @@ import {
   ExperimentOutlined,
 } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
+
+const router = useRouter();
+
+const page = computed(() => [router.currentRoute.value.name]);
+function navigate({ key }: { key: string }) {
+  router.replace({ name: key });
+}
 
 const device = ref<USBDevice>();
 const connecting = ref(false);
@@ -66,7 +76,7 @@ navigator.usb.addEventListener('disconnect', () => {
 async function connect() {
   connecting.value = true;
 
-  const dev = device.value = await navigator.usb.requestDevice({
+  const dev = await navigator.usb.requestDevice({
     filters: [
       { vendorId: 0x1d50, productId: 0x615e },
     ],
@@ -77,6 +87,7 @@ async function connect() {
 
   message.success('设备已连接');
 
+  device.value = dev;
   connecting.value = false;
 }
 
@@ -116,6 +127,11 @@ async function disconnect() {
   :global(.ant-menu-item-icon),
   :global(.ant-menu-title-content) {
     font-size: 18px;
+    user-select: none;
   }
+}
+
+.main {
+  padding: 0 64px;
 }
 </style>
