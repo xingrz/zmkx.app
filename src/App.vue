@@ -28,15 +28,12 @@
           </template>
           墨水屏
         </a-menu-item>
-        <a-sub-menu key="advanced">
+        <a-menu-item key="motor">
           <template #icon>
-            <experiment-outlined />
+            <loading3-quarters-outlined />
           </template>
-          <template #title>
-            高级
-          </template>
-          <a-menu-item key="knob">电机参数</a-menu-item>
-        </a-sub-menu>
+          电机
+        </a-menu-item>
       </a-menu>
     </a-layout-sider>
     <a-layout-content :class="$style.main">
@@ -54,7 +51,7 @@ import {
   InfoCircleOutlined,
   SettingOutlined,
   ProjectOutlined,
-  ExperimentOutlined,
+  Loading3QuartersOutlined,
 } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
 
@@ -105,7 +102,7 @@ async function disconnect() {
 }
 
 .container {
-  max-width: 1000px;
+  max-width: 1800px;
   margin: 0 auto;
   padding: 50px 20px;
   background: none;

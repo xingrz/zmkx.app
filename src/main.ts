@@ -16,6 +16,11 @@ app.use(createRouter({
       name: 'about',
       component: () => import('@/routes/About.vue'),
     },
+    {
+      path: '/motor',
+      name: 'motor',
+      component: () => import('@/routes/Motor.vue'),
+    },
   ],
 }));
 app.mount('#app');

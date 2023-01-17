@@ -9,5 +9,8 @@ export async function query(device: USBDevice, ep: number, req: MessageH2D): Pro
   const read = await device.transferIn(ep, MAX_PACKET_SIZE);
   if (read.status != 'ok' || !read.data) return;
 
-  return MessageD2H.decode(new Uint8Array(read.data.buffer));
+  const res = MessageD2H.decode(new Uint8Array(read.data.buffer));
+  if (res.action != req.action) return;
+
+  return res;
 }
