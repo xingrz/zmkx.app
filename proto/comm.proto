@@ -3,15 +3,22 @@ syntax = "proto2";
 enum Action {
   NOP = 0;
   VERSION = 1;
-  KNOB_STATUS = 2;
+  GET_MOTOR_STATE = 2;
+  GET_KNOB_CONFIG = 3;
+  SET_KNOB_CONFIG = 4;
+  RESET_KNOB_CONFIG = 5;
 }
 
-message MessageH2D { required Action action = 1; }
+message MessageH2D {
+  required Action action = 1;
+  optional KnobConfig knob_config = 2;
+}
 
 message MessageD2H {
   required Action action = 1;
   optional Version version = 2;
-  optional KnobStatus knob_status = 3;
+  optional MotorState motor_state = 3;
+  optional KnobConfig knob_config = 4;
 }
 
 message Version {
@@ -20,12 +27,33 @@ message Version {
   required string app_version = 3;
 }
 
-message KnobStatus {
+message MotorState {
   required uint32 timestamp = 1;
-  required uint32 control_mode = 2;
+  required MotorControlMode control_mode = 2;
   required float current_angle = 3;
   required float current_velocity = 4;
   required float target_angle = 5;
   required float target_velocity = 6;
   required float target_voltage = 7;
+}
+
+enum MotorControlMode {
+  TORQUE = 0;
+  VELOCITY = 1;
+  ANGLE = 2;
+}
+
+message KnobConfig {
+  required KnobMode mode = 1;
+  optional float damped_min = 2;
+  optional float damped_max = 3;
+}
+
+enum KnobMode {
+  DISABLE = 0;
+  INERTIA = 1;
+  ENCODER = 2;
+  SPRING = 3;
+  DAMPED = 4;
+  SPIN = 5;
 }
