@@ -1,7 +1,7 @@
 <template>
   <p>
     <a-space direction="horizontal">
-      <a-switch v-model:checked="demo" />
+      <a-switch :checked="knobConfig?.demo" @update:checked="toggleDemo" />
       演示模式
     </a-space>
   </p>
@@ -11,7 +11,8 @@
     </a-typography-text>
   </p>
 
-  <a-radio-group v-model:value="knobMode" button-style="solid" :disabled="!demo">
+  <a-radio-group :value="knobConfig?.mode" button-style="solid" :disabled="!knobConfig?.demo"
+    @update:value="changeMode">
     <a-radio-button :value="KnobMode.INERTIA">惯性</a-radio-button>
     <a-radio-button :value="KnobMode.ENCODER">编码器</a-radio-button>
     <a-radio-button :value="KnobMode.SPRING">弹簧</a-radio-button>
@@ -49,113 +50,61 @@
 
   <section :style="{ marginTop: '32px' }">
     <h3>实时角度</h3>
-    <div ref="angleLineEl" :style="{ height: '200px' }" />
+    <div ref="angleLineEl" :style="{ height: '180px' }" />
   </section>
 
   <section :style="{ marginTop: '32px' }">
     <h3>实时力矩</h3>
-    <div ref="velocityLineEl" :style="{ height: '200px' }" />
+    <div ref="torqueLineEl" :style="{ height: '180px' }" />
   </section>
 </template>
 
 <script lang="ts" setup>
-import { defineProps, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { defineProps, onMounted, toRefs } from 'vue';
 import { Line } from '@antv/g2plot';
 
-import { query } from '../comm';
-import { Action, KnobMode, MessageH2D, MotorControlMode, MotorState } from '../proto/comm.proto';
+import { useUsbComm } from '@/stores/usb';
+import { KnobConfig, KnobMode, MotorControlMode } from '@/proto/comm.proto';
 
-import usePlot from '../composables/usePlot';
-import { radNorm, radToDeg } from '../utils/math';
-import sliceLast from '../utils/sliceLast';
+import useInterval from '@/composables/useInterval';
+import usePlot from '@/composables/usePlot';
+
+import { radNorm, radToDeg } from '@/utils/math';
 
 const props = defineProps<{
   device: USBDevice;
 }>();
 
-const demo = ref(false);
-const knobMode = ref<KnobMode>(KnobMode.INERTIA);
-watch(demo, async (demo) => {
+const comm = useUsbComm();
+
+const { motorState, knobConfig, angleTimeline, torqueTimeline } = toRefs(comm);
+
+function toggleDemo(demo: boolean): void {
   if (demo) {
-    const res = await query(props.device, 1, MessageH2D.create({
-      action: Action.SET_KNOB_CONFIG,
-      knobConfig: {
-        mode: KnobMode.INERTIA,
-      },
+    comm.setKnobConfig(props.device, 1, KnobConfig.create({
+      mode: KnobMode.INERTIA,
+      demo: true,
     }));
-    if (res?.knobConfig) {
-      knobMode.value = res.knobConfig.mode;
-    }
   } else {
-    const res = await query(props.device, 1, MessageH2D.create({
-      action: Action.RESET_KNOB_CONFIG,
+    comm.setKnobConfig(props.device, 1, KnobConfig.create({
+      mode: KnobMode.ENCODER,
+      demo: false,
     }));
-    if (res?.knobConfig) {
-      knobMode.value = res.knobConfig.mode;
-    }
-  }
-});
-watch(knobMode, async (mode) => {
-  const res = await query(props.device, 1, MessageH2D.create({
-    action: Action.SET_KNOB_CONFIG,
-    knobConfig: {
-      mode: mode,
-    },
-  }));
-  if (res?.knobConfig) {
-    knobMode.value = res.knobConfig.mode;
-  }
-});
-onMounted(async () => {
-  const res = await query(props.device, 1, MessageH2D.create({
-    action: Action.GET_KNOB_CONFIG,
-  }));
-  if (res?.knobConfig) {
-    knobMode.value = res.knobConfig.mode;
-  }
-});
-
-const motorState = ref<MotorState>();
-
-let timer: ReturnType<typeof setInterval> | undefined;
-onMounted(() => timer = setInterval(load, 20));
-onBeforeUnmount(() => clearInterval(timer));
-
-async function load() {
-  const res = await query(props.device, 1, MessageH2D.create({
-    action: Action.GET_MOTOR_STATE,
-  }));
-  if (res?.motorState) {
-    motorState.value = res.motorState;
-    const i = res.motorState;
-    angleLine.value = sliceLast([
-      ...angleLine.value,
-      {
-        timestamp: i.timestamp,
-        value: Math.sin(i.currentAngle),
-        type: 'current',
-      },
-      {
-        timestamp: i.timestamp,
-        value: i.controlMode == MotorControlMode.ANGLE ? Math.sin(i.targetAngle) : undefined,
-        type: 'target',
-      },
-    ], 1000);
-    velocityLine.value = sliceLast([
-      ...velocityLine.value,
-      {
-        timestamp: i.timestamp,
-        value: i.currentVelocity,
-        type: 'current',
-      },
-      {
-        timestamp: i.timestamp,
-        value: i.targetVelocity,
-        type: 'target',
-      },
-    ], 1000);
   }
 }
+
+function changeMode(mode: KnobMode): void {
+  comm.setKnobConfig(props.device, 1, KnobConfig.create({
+    mode: mode,
+    demo: true,
+  }));
+}
+
+onMounted(async () => {
+  comm.getKnobConfig(props.device, 1);
+});
+
+useInterval(() => comm.getMotorState(props.device, 1), 50);
 
 const controlModeNames: Record<MotorControlMode, string> = {
   [MotorControlMode.TORQUE]: '力矩',
@@ -163,16 +112,7 @@ const controlModeNames: Record<MotorControlMode, string> = {
   [MotorControlMode.VELOCITY]: '速度',
 };
 
-interface ITimedItem {
-  timestamp: number;
-  value: number | undefined;
-  type: 'current' | 'target';
-}
-
-const angleLine = ref<ITimedItem[]>([]);
-const velocityLine = ref<ITimedItem[]>([]);
-
-const { el: angleLineEl } = usePlot(angleLine, (el, data) => new Line(el, {
+const { el: angleLineEl } = usePlot(angleTimeline, (el, data) => new Line(el, {
   autoFit: true,
   animation: false,
   data: data,
@@ -195,7 +135,7 @@ const { el: angleLineEl } = usePlot(angleLine, (el, data) => new Line(el, {
   },
 }));
 
-const { el: velocityLineEl } = usePlot(velocityLine, (el, data) => new Line(el, {
+const { el: torqueLineEl } = usePlot(torqueTimeline, (el, data) => new Line(el, {
   autoFit: true,
   animation: false,
   data: data,

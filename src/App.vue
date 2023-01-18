@@ -55,7 +55,11 @@ import {
 } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
 
+import { useUsbComm } from '@/stores/usb';
+import { transferIn } from '@/utils/usb';
+
 const router = useRouter();
+const { handleTransferIn } = useUsbComm();
 
 const page = computed(() => [router.currentRoute.value.name]);
 function navigate({ key }: { key: string }) {
@@ -86,6 +90,16 @@ async function connect() {
 
   device.value = dev;
   connecting.value = false;
+
+  setTimeout(async () => {
+    while (device.value) {
+      try {
+        handleTransferIn(await transferIn(device.value, 1));
+      } catch (e) {
+        break;
+      }
+    }
+  }, 0);
 }
 
 async function disconnect() {

@@ -24,22 +24,16 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, onMounted, ref } from 'vue';
+import { defineProps, onMounted, toRefs } from 'vue';
 
-import { query } from '../comm';
-import { MessageH2D, Action, Version } from '../proto/comm.proto';
+import { useUsbComm } from '@/stores/usb';
 
 const props = defineProps<{
   device: USBDevice;
 }>();
 
-const version = ref<Version>();
+const comm = useUsbComm();
+const { version } = toRefs(comm);
 
-onMounted(async () => {
-  const res = await query(props.device, 1, MessageH2D.create({
-    action: Action.VERSION,
-  }));
-
-  version.value = res?.version;
-});
+onMounted(() => comm.getVersion(props.device, 1));
 </script>

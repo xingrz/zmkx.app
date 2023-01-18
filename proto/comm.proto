@@ -6,7 +6,6 @@ enum Action {
   GET_MOTOR_STATE = 2;
   GET_KNOB_CONFIG = 3;
   SET_KNOB_CONFIG = 4;
-  RESET_KNOB_CONFIG = 5;
 }
 
 message MessageH2D {
@@ -45,6 +44,7 @@ enum MotorControlMode {
 
 message KnobConfig {
   required KnobMode mode = 1;
+  required bool demo = 4;
   optional float damped_min = 2;
   optional float damped_max = 3;
 }
