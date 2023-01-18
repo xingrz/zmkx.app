@@ -63,7 +63,7 @@
 import { defineProps, onBeforeUnmount, onMounted, toRefs } from 'vue';
 import { Line } from '@antv/g2plot';
 
-import { useUsbComm } from '@/stores/usb';
+import { useUsbComm, type ITimedState } from '@/stores/usb';
 import { KnobConfig, KnobMode, MotorControlMode } from '@/proto/comm.proto';
 
 import useIntervalAsync from '@/composables/useIntervalAsync';
@@ -110,6 +110,11 @@ const controlModeNames: Record<MotorControlMode, string> = {
   [MotorControlMode.VELOCITY]: '速度',
 };
 
+const timelineItemType: Record<ITimedState['type'], string> = {
+  current: '当前',
+  target: '目标',
+};
+
 const { el: angleLineEl } = usePlot(angleTimeline, (el, data) => new Line(el, {
   autoFit: true,
   animation: false,
@@ -128,10 +133,13 @@ const { el: angleLineEl } = usePlot(angleTimeline, (el, data) => new Line(el, {
       type: 'time',
     },
     value: {
-      formatter: (sin: number | undefined) => typeof sin == 'undefined' ? undefined : radToDeg(Math.asin(sin)).toFixed(2),
+      formatter: (sin: number | undefined) => {
+        if (typeof sin == 'undefined') return;
+        return radToDeg(Math.asin(sin)).toFixed(2)
+      },
     },
     type: {
-      formatter: (type: string) => type == 'current' ? '当前' : '目标',
+      formatter: (type: ITimedState['type']) => timelineItemType[type],
     },
   },
 }));
@@ -154,10 +162,13 @@ const { el: torqueLineEl } = usePlot(torqueTimeline, (el, data) => new Line(el, 
       type: 'time',
     },
     value: {
-      formatter: (velocity: number | undefined) => typeof velocity == 'undefined' ? undefined : velocity.toFixed(3),
+      formatter: (velocity: number | undefined) => {
+        if (typeof velocity == 'undefined') return;
+        return velocity.toFixed(3)
+      },
     },
     type: {
-      formatter: (type: string) => type == 'current' ? '当前' : '目标',
+      formatter: (type: ITimedState['type']) => timelineItemType[type],
     },
   },
 }));
