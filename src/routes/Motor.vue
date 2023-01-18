@@ -60,13 +60,13 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, onMounted, toRefs } from 'vue';
+import { defineProps, onBeforeUnmount, onMounted, toRefs } from 'vue';
 import { Line } from '@antv/g2plot';
 
 import { useUsbComm } from '@/stores/usb';
 import { KnobConfig, KnobMode, MotorControlMode } from '@/proto/comm.proto';
 
-import useInterval from '@/composables/useInterval';
+import useIntervalAsync from '@/composables/useIntervalAsync';
 import usePlot from '@/composables/usePlot';
 
 import { radNorm, radToDeg } from '@/utils/math';
@@ -100,11 +100,9 @@ function changeMode(mode: KnobMode): void {
   }));
 }
 
-onMounted(async () => {
-  comm.getKnobConfig(props.device, 1);
-});
-
-useInterval(() => comm.getMotorState(props.device, 1), 50);
+onMounted(() => comm.getKnobConfig(props.device, 1));
+useIntervalAsync(() => comm.getMotorState(props.device, 1), 50);
+onBeforeUnmount(() => comm.resetTimelines());
 
 const controlModeNames: Record<MotorControlMode, string> = {
   [MotorControlMode.TORQUE]: '力矩',
@@ -126,6 +124,9 @@ const { el: angleLineEl } = usePlot(angleTimeline, (el, data) => new Line(el, {
     max: 1,
   },
   meta: {
+    timestamp: {
+      type: 'time',
+    },
     value: {
       formatter: (sin: number | undefined) => typeof sin == 'undefined' ? undefined : radToDeg(Math.asin(sin)).toFixed(2),
     },
@@ -149,6 +150,9 @@ const { el: torqueLineEl } = usePlot(torqueTimeline, (el, data) => new Line(el, 
     max: 110,
   },
   meta: {
+    timestamp: {
+      type: 'time',
+    },
     value: {
       formatter: (velocity: number | undefined) => typeof velocity == 'undefined' ? undefined : velocity.toFixed(3),
     },

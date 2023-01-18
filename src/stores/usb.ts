@@ -20,6 +20,16 @@ export interface ITimedState {
   type: 'current' | 'target';
 }
 
+function updateTimeline(current: ITimedState[], items: ITimedState[], limit: number): ITimedState[] {
+  if (current.length > 0 && items[0].timestamp < current[current.length - 1].timestamp) {
+    current = [];
+  }
+  return sliceLast([
+    ...current,
+    ...items,
+  ], limit);
+}
+
 export const useUsbComm = defineStore('usb', () => {
   const version = ref<Version | null>(null);
   const motorState = ref<MotorState>();
@@ -42,15 +52,14 @@ export const useUsbComm = defineStore('usb', () => {
   }
 
   function updateAngleTimeline({ timestamp, currentAngle, targetAngle, controlMode }: MotorState): void {
-    angleTimeline.value = sliceLast([
-      ...angleTimeline.value,
+    angleTimeline.value = updateTimeline(angleTimeline.value, [
       {
-        timestamp: timestamp,
+        timestamp: Math.round(timestamp / 1000),
         value: Math.sin(currentAngle),
         type: 'current',
       },
       {
-        timestamp: timestamp,
+        timestamp: Math.round(timestamp / 1000),
         value: controlMode == MotorControlMode.ANGLE ? Math.sin(targetAngle) : undefined,
         type: 'target',
       },
@@ -58,19 +67,23 @@ export const useUsbComm = defineStore('usb', () => {
   }
 
   function updateTorqueTimeline({ timestamp, currentVelocity, targetVelocity }: MotorState): void {
-    torqueTimeline.value = sliceLast([
-      ...torqueTimeline.value,
+    torqueTimeline.value = updateTimeline(torqueTimeline.value, [
       {
-        timestamp: timestamp,
+        timestamp: Math.round(timestamp / 1000),
         value: currentVelocity,
         type: 'current',
       },
       {
-        timestamp: timestamp,
+        timestamp: Math.round(timestamp / 1000),
         value: targetVelocity,
         type: 'target',
       },
     ], 500);
+  }
+
+  function resetTimelines() {
+    angleTimeline.value = [];
+    torqueTimeline.value = [];
   }
 
   async function getVersion(device: USBDevice, ep: number): Promise<void> {
@@ -104,6 +117,7 @@ export const useUsbComm = defineStore('usb', () => {
     knobConfig,
     angleTimeline,
     torqueTimeline,
+    resetTimelines,
     getVersion,
     getMotorState,
     getKnobConfig,
