@@ -30,7 +30,8 @@
         </a-menu-item>
         <a-menu-item key="motor">
           <template #icon>
-            <loading3-quarters-outlined />
+            <loading-outlined v-if="comm.knobConfig?.demo" />
+            <loading3-quarters-outlined v-else />
           </template>
           电机
         </a-menu-item>
@@ -51,6 +52,7 @@ import {
   InfoCircleOutlined,
   SettingOutlined,
   ProjectOutlined,
+  LoadingOutlined,
   Loading3QuartersOutlined,
 } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';

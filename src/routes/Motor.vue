@@ -60,7 +60,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onBeforeUnmount, onMounted, toRefs } from 'vue';
+import { onMounted, toRefs } from 'vue';
 import { Line } from '@antv/g2plot';
 
 import { useUsbComm, type ITimedState } from '@/stores/usb';
@@ -95,9 +95,11 @@ function changeMode(mode: KnobConfig.Mode): void {
   }));
 }
 
-onMounted(() => comm.getKnobConfig());
+onMounted(() => {
+  comm.getKnobConfig();
+  comm.resetTimelines();
+});
 useIntervalAsync(() => comm.getMotorState(), 20);
-onBeforeUnmount(() => comm.resetTimelines());
 
 const controlModeNames: Record<MotorState.ControlMode, string> = {
   [MotorState.ControlMode.TORQUE]: '力矩',
