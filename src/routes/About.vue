@@ -24,16 +24,12 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, onMounted, toRefs } from 'vue';
+import { onMounted, toRefs } from 'vue';
 
 import { useUsbComm } from '@/stores/usb';
-
-const props = defineProps<{
-  device: USBDevice;
-}>();
 
 const comm = useUsbComm();
 const { version } = toRefs(comm);
 
-onMounted(() => comm.getVersion(props.device, 1));
+onMounted(() => comm.getVersion());
 </script>

@@ -2,7 +2,7 @@
   <a-layout :class="$style.container">
     <a-layout-sider :style="{ background: 'none' }">
       <div :class="$style.device">
-        <a-button v-if="device" shape="round" size="large" block @click="disconnect">
+        <a-button v-if="device" shape="round" size="large" block @click="comm.close">
           断开设备
         </a-button>
         <a-button v-else shape="round" size="large" block type="primary" :loading="connecting" @click="connect">
@@ -38,14 +38,14 @@
     </a-layout-sider>
     <a-layout-content :class="$style.main">
       <router-view v-slot="{ Component }">
-        <component v-if="device" :is="Component" :device="device" />
+        <component v-if="device" :is="Component" />
       </router-view>
     </a-layout-content>
   </a-layout>
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, ref, toRefs, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   InfoCircleOutlined,
@@ -56,56 +56,33 @@ import {
 import { message } from 'ant-design-vue';
 
 import { useUsbComm } from '@/stores/usb';
-import { transferIn } from '@/utils/usb';
 
 const router = useRouter();
-const { handleTransferIn } = useUsbComm();
 
 const page = computed(() => [router.currentRoute.value.name]);
 function navigate({ key }: { key: string }) {
   router.replace({ name: key });
 }
 
-const device = ref<USBDevice>();
-const connecting = ref(false);
+const comm = useUsbComm();
 
-navigator.usb.addEventListener('disconnect', () => {
-  device.value = undefined;
-  message.error('设备已断开');
+const { device } = toRefs(comm);
+watch(device, (device) => {
+  if (device) {
+    message.success('设备已连接');
+  } else {
+    message.success('设备已断开');
+  }
 });
 
+const connecting = ref(false);
 async function connect() {
-  connecting.value = true;
-
-  const dev = await navigator.usb.requestDevice({
-    filters: [
-      { vendorId: 0x1d50, productId: 0x615e },
-    ],
-  });
-
-  await dev.open();
-  await dev.claimInterface(0);
-
-  message.success('设备已连接');
-
-  device.value = dev;
-  connecting.value = false;
-
-  setTimeout(async () => {
-    while (device.value) {
-      try {
-        handleTransferIn(await transferIn(device.value, 1));
-      } catch (e) {
-        break;
-      }
-    }
-  }, 0);
-}
-
-async function disconnect() {
-  await device.value?.close();
-  device.value = undefined;
-  message.success('设备已断开');
+  try {
+    connecting.value = true;
+    await comm.open();
+  } finally {
+    connecting.value = false;
+  }
 }
 </script>
 

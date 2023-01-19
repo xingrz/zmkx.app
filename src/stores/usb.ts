@@ -1,15 +1,14 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
 
-import { transferOut } from '@/utils/usb';
+import { UsbCommManager } from '@/utils/usb';
 
 import {
   Action,
   MessageH2D,
-  MotorControlMode,
+  MotorState,
   type KnobConfig,
   type MessageD2H,
-  type MotorState,
   type Version,
 } from '@/proto/comm.proto';
 import sliceLast from '@/utils/sliceLast';
@@ -31,24 +30,32 @@ function updateTimeline(current: ITimedState[], items: ITimedState[], limit: num
 }
 
 export const useUsbComm = defineStore('usb', () => {
-  const version = ref<Version | null>(null);
+  const device = ref<USBDevice>();
+
+  const version = ref<Version>();
   const motorState = ref<MotorState>();
   const knobConfig = ref<KnobConfig>();
   const angleTimeline = ref<ITimedState[]>([]);
   const torqueTimeline = ref<ITimedState[]>([]);
 
-  function handleTransferIn(res: MessageD2H | undefined): void {
-    if (res?.version) {
+  const comm = new UsbCommManager(handleTransferIn, handleDisconnected);
+
+  function handleTransferIn(res: MessageD2H): void {
+    if (res.payload == 'version' && res.version) {
       version.value = res.version;
     }
-    if (res?.motorState) {
+    if (res.payload == 'motorState' && res.motorState) {
       motorState.value = res.motorState;
       updateAngleTimeline(res.motorState);
       updateTorqueTimeline(res.motorState);
     }
-    if (res?.knobConfig) {
+    if (res.payload == 'knobConfig' && res.knobConfig) {
       knobConfig.value = res.knobConfig;
     }
+  }
+
+  function handleDisconnected(): void {
+    device.value = undefined;
   }
 
   function updateAngleTimeline({ timestamp, currentAngle, targetAngle, controlMode }: MotorState): void {
@@ -60,7 +67,7 @@ export const useUsbComm = defineStore('usb', () => {
       },
       {
         timestamp: Math.round(timestamp / 1000),
-        value: controlMode == MotorControlMode.ANGLE ? Math.sin(targetAngle) : undefined,
+        value: controlMode == MotorState.ControlMode.ANGLE ? Math.sin(targetAngle) : undefined,
         type: 'target',
       },
     ], 500);
@@ -86,42 +93,59 @@ export const useUsbComm = defineStore('usb', () => {
     torqueTimeline.value = [];
   }
 
-  async function getVersion(device: USBDevice, ep: number): Promise<void> {
-    await transferOut(device, ep, MessageH2D.create({
+  async function open(): Promise<void> {
+    device.value = await comm.open();
+  }
+
+  async function close(): Promise<void> {
+    await comm.close();
+  }
+
+  async function getVersion(): Promise<void> {
+    await comm.send(MessageH2D.create({
       action: Action.VERSION,
+      payload: 'nop',
+      nop: {},
     }));
   }
 
-  async function getMotorState(device: USBDevice, ep: number): Promise<void> {
-    await transferOut(device, ep, MessageH2D.create({
-      action: Action.GET_MOTOR_STATE,
+  async function getMotorState(): Promise<void> {
+    await comm.send(MessageH2D.create({
+      action: Action.MOTOR_GET_STATE,
+      payload: 'nop',
+      nop: {},
     }));
   }
 
-  async function getKnobConfig(device: USBDevice, ep: number): Promise<void> {
-    await transferOut(device, ep, MessageH2D.create({
-      action: Action.GET_KNOB_CONFIG,
+  async function getKnobConfig(): Promise<void> {
+    await comm.send(MessageH2D.create({
+      action: Action.KNOB_GET_CONFIG,
+      payload: 'nop',
+      nop: {},
     }));
   }
 
-  async function setKnobConfig(device: USBDevice, ep: number, config: KnobConfig): Promise<void> {
-    await transferOut(device, ep, MessageH2D.create({
-      action: Action.SET_KNOB_CONFIG,
+  async function setKnobConfig(config: KnobConfig): Promise<void> {
+    await comm.send(MessageH2D.create({
+      action: Action.KNOB_SET_CONFIG,
+      payload: 'knobConfig',
       knobConfig: config,
     }));
   }
 
   return {
+    device,
     version,
     motorState,
     knobConfig,
     angleTimeline,
     torqueTimeline,
     resetTimelines,
+    open,
+    close,
     getVersion,
     getMotorState,
     getKnobConfig,
     setKnobConfig,
-    handleTransferIn,
   };
 });

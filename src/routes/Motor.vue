@@ -13,11 +13,11 @@
 
   <a-radio-group :value="knobConfig?.mode" button-style="solid" :disabled="!knobConfig?.demo"
     @update:value="changeMode">
-    <a-radio-button :value="KnobMode.INERTIA">惯性</a-radio-button>
-    <a-radio-button :value="KnobMode.ENCODER">编码器</a-radio-button>
-    <a-radio-button :value="KnobMode.SPRING">弹簧</a-radio-button>
-    <a-radio-button :value="KnobMode.DAMPED">阻尼</a-radio-button>
-    <a-radio-button :value="KnobMode.SPIN">旋转</a-radio-button>
+    <a-radio-button :value="KnobConfig.Mode.INERTIA">惯性</a-radio-button>
+    <a-radio-button :value="KnobConfig.Mode.ENCODER">编码器</a-radio-button>
+    <a-radio-button :value="KnobConfig.Mode.SPRING">弹簧</a-radio-button>
+    <a-radio-button :value="KnobConfig.Mode.DAMPED">阻尼</a-radio-button>
+    <a-radio-button :value="KnobConfig.Mode.SPIN">旋转</a-radio-button>
   </a-radio-group>
 
   <a-divider />
@@ -60,54 +60,49 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, onBeforeUnmount, onMounted, toRefs } from 'vue';
+import { onBeforeUnmount, onMounted, toRefs } from 'vue';
 import { Line } from '@antv/g2plot';
 
 import { useUsbComm, type ITimedState } from '@/stores/usb';
-import { KnobConfig, KnobMode, MotorControlMode } from '@/proto/comm.proto';
+import { KnobConfig, MotorState } from '@/proto/comm.proto';
 
 import useIntervalAsync from '@/composables/useIntervalAsync';
 import usePlot from '@/composables/usePlot';
 
 import { radNorm, radToDeg } from '@/utils/math';
 
-const props = defineProps<{
-  device: USBDevice;
-}>();
-
 const comm = useUsbComm();
-
 const { motorState, knobConfig, angleTimeline, torqueTimeline } = toRefs(comm);
 
 function toggleDemo(demo: boolean): void {
   if (demo) {
-    comm.setKnobConfig(props.device, 1, KnobConfig.create({
-      mode: KnobMode.INERTIA,
+    comm.setKnobConfig(KnobConfig.create({
+      mode: KnobConfig.Mode.INERTIA,
       demo: true,
     }));
   } else {
-    comm.setKnobConfig(props.device, 1, KnobConfig.create({
-      mode: KnobMode.ENCODER,
+    comm.setKnobConfig(KnobConfig.create({
+      mode: KnobConfig.Mode.ENCODER,
       demo: false,
     }));
   }
 }
 
-function changeMode(mode: KnobMode): void {
-  comm.setKnobConfig(props.device, 1, KnobConfig.create({
+function changeMode(mode: KnobConfig.Mode): void {
+  comm.setKnobConfig(KnobConfig.create({
     mode: mode,
     demo: true,
   }));
 }
 
-onMounted(() => comm.getKnobConfig(props.device, 1));
-useIntervalAsync(() => comm.getMotorState(props.device, 1), 50);
+onMounted(() => comm.getKnobConfig());
+useIntervalAsync(() => comm.getMotorState(), 20);
 onBeforeUnmount(() => comm.resetTimelines());
 
-const controlModeNames: Record<MotorControlMode, string> = {
-  [MotorControlMode.TORQUE]: '力矩',
-  [MotorControlMode.ANGLE]: '角度',
-  [MotorControlMode.VELOCITY]: '速度',
+const controlModeNames: Record<MotorState.ControlMode, string> = {
+  [MotorState.ControlMode.TORQUE]: '力矩',
+  [MotorState.ControlMode.ANGLE]: '角度',
+  [MotorState.ControlMode.VELOCITY]: '速度',
 };
 
 const timelineItemType: Record<ITimedState['type'], string> = {
