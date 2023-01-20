@@ -7,6 +7,8 @@ import {
   Action,
   MessageH2D,
   MotorState,
+  RgbControl,
+  RgbState,
   type KnobConfig,
   type MessageD2H,
   type Version,
@@ -37,6 +39,7 @@ export const useUsbComm = defineStore('usb', () => {
   const knobConfig = ref<KnobConfig>();
   const angleTimeline = ref<ITimedState[]>([]);
   const torqueTimeline = ref<ITimedState[]>([]);
+  const rgbState = ref<RgbState>();
 
   const comm = new UsbCommManager(handleTransferIn, handleDisconnected);
 
@@ -51,6 +54,9 @@ export const useUsbComm = defineStore('usb', () => {
     }
     if (res.payload == 'knobConfig' && res.knobConfig) {
       knobConfig.value = res.knobConfig;
+    }
+    if (res.payload == 'rgbState' && res.rgbState) {
+      rgbState.value = res.rgbState;
     }
   }
 
@@ -133,6 +139,22 @@ export const useUsbComm = defineStore('usb', () => {
     }));
   }
 
+  async function sendRgbControl(command: RgbControl.Command): Promise<void> {
+    await comm.send(MessageH2D.create({
+      action: Action.RGB_CONTROL,
+      payload: 'rgbControl',
+      rgbControl: { command },
+    }));
+  }
+
+  async function getRgbState(): Promise<void> {
+    await comm.send(MessageH2D.create({
+      action: Action.RGB_GET_STATE,
+      payload: 'nop',
+      nop: {},
+    }));
+  }
+
   return {
     device,
     version,
@@ -140,6 +162,7 @@ export const useUsbComm = defineStore('usb', () => {
     knobConfig,
     angleTimeline,
     torqueTimeline,
+    rgbState,
     resetTimelines,
     open,
     close,
@@ -147,5 +170,7 @@ export const useUsbComm = defineStore('usb', () => {
     getMotorState,
     getKnobConfig,
     setKnobConfig,
+    sendRgbControl,
+    getRgbState,
   };
 });

@@ -16,11 +16,11 @@
           </template>
           关于
         </a-menu-item>
-        <a-menu-item key="options">
+        <a-menu-item key="rgb">
           <template #icon>
-            <setting-outlined />
+            <alert-outlined />
           </template>
-          选项
+          灯效
         </a-menu-item>
         <a-menu-item key="eink">
           <template #icon>
@@ -50,7 +50,7 @@ import { computed, ref, toRefs, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   InfoCircleOutlined,
-  SettingOutlined,
+  AlertOutlined,
   ProjectOutlined,
   LoadingOutlined,
   Loading3QuartersOutlined,

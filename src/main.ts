@@ -19,6 +19,11 @@ app.use(createRouter({
       component: () => import('@/routes/About.vue'),
     },
     {
+      path: '/rgb',
+      name: 'rgb',
+      component: () => import('@/routes/Rgb.vue'),
+    },
+    {
       path: '/motor',
       name: 'motor',
       component: () => import('@/routes/Motor.vue'),
