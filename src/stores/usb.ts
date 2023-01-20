@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { onMounted, ref, toRef, watch } from 'vue';
 import { defineStore } from 'pinia';
 
 import { UsbCommManager } from '@/utils/usb';
@@ -174,3 +174,20 @@ export const useUsbComm = defineStore('usb', () => {
     getRgbState,
   };
 });
+
+type IUsbCommStore = ReturnType<typeof useUsbComm>;
+
+export function onDeviceConnected(store: IUsbCommStore, callback: (device: USBDevice) => void) {
+  const device = toRef(store, 'device');
+
+  function onConnected() {
+    setTimeout(() => {
+      if (device.value) {
+        callback(device.value);
+      }
+    }, 0);
+  }
+
+  onMounted(() => { console.log('mounted', device.value); onConnected() });
+  watch(device, (dev) => { console.log('device', device.value); onConnected() });
+}

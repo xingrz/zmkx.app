@@ -70,7 +70,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted } from 'vue';
+import { computed } from 'vue';
 import {
   MinusOutlined,
   PlusOutlined,
@@ -78,7 +78,7 @@ import {
   ArrowRightOutlined,
 } from '@ant-design/icons-vue';
 
-import { useUsbComm } from '@/stores/usb';
+import { onDeviceConnected, useUsbComm } from '@/stores/usb';
 import { RgbControl } from '@/proto/comm.proto';
 
 const { Command } = RgbControl;
@@ -87,7 +87,7 @@ const comm = useUsbComm();
 const { sendRgbControl } = comm;
 const rgbOn = computed(() => comm.rgbState?.on);
 
-onMounted(() => comm.getRgbState());
+onDeviceConnected(comm, () => comm.getRgbState());
 
 function toggleRgb(on: boolean): void {
   if (on) {

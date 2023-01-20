@@ -63,7 +63,7 @@
 import { onMounted, toRefs } from 'vue';
 import { Line } from '@antv/g2plot';
 
-import { useUsbComm, type ITimedState } from '@/stores/usb';
+import { onDeviceConnected, useUsbComm, type ITimedState } from '@/stores/usb';
 import { KnobConfig, MotorState } from '@/proto/comm.proto';
 
 import useIntervalAsync from '@/composables/useIntervalAsync';
@@ -95,10 +95,8 @@ function changeMode(mode: KnobConfig.Mode): void {
   }));
 }
 
-onMounted(() => {
-  comm.getKnobConfig();
-  comm.resetTimelines();
-});
+onMounted(() => comm.resetTimelines());
+onDeviceConnected(comm, () => comm.getKnobConfig());
 useIntervalAsync(() => comm.getMotorState(), 20);
 
 const controlModeNames: Record<MotorState.ControlMode, string> = {

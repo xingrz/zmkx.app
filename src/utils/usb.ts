@@ -1,4 +1,4 @@
-import { MessageD2H, MessageH2D } from '@/proto/comm.proto';
+import { Action, MessageD2H, MessageH2D } from '@/proto/comm.proto';
 
 const USB_VID = 0x1d50;
 const USB_PID = 0x615e;
@@ -40,6 +40,8 @@ export class UsbCommManager {
       await device.close();
       return undefined;
     }
+
+    await sync(device, eps[1]);
 
     this.epIn = eps[0];
     this.epOut = eps[1];
@@ -124,6 +126,14 @@ async function configure(device: USBDevice): Promise<[USBEndpoint, USBEndpoint] 
       }
     }
   }
+}
+
+async function sync(device: USBDevice, ep: USBEndpoint): Promise<void> {
+  await device.transferOut(ep.endpointNumber, MessageH2D.encodeDelimited(MessageH2D.create({
+    action: Action.NOP,
+    payload: 'nop',
+    nop: {},
+  })).finish());
 }
 
 function concat(head: Uint8Array | undefined, tail: Uint8Array): Uint8Array {
