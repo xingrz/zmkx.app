@@ -1,6 +1,7 @@
 <template>
   <a-layout :class="$style.container">
     <a-layout-sider :style="{ background: 'none' }">
+      <div :class="$style.logo">Dynamic</div>
       <div :class="$style.device">
         <a-button v-if="device" shape="round" size="large" block @click="comm.close">
           断开设备
@@ -97,12 +98,22 @@ async function connect() {
 .container {
   max-width: 1800px;
   margin: 0 auto;
-  padding: 50px 20px;
+  padding: 16px;
   background: none;
 }
 
+.logo {
+  height: 64px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 40px;
+  line-height: 64px;
+  text-align: center;
+  margin-bottom: 32px;
+  color: #334;
+}
+
 .device {
-  padding: 0 20px 40px;
+  padding: 0 16px 48px;
 }
 
 .nav {
@@ -122,6 +133,6 @@ async function connect() {
 }
 
 .main {
-  padding: 0 64px;
+  padding: 16px 64px 0;
 }
 </style>
