@@ -1,5 +1,23 @@
 <template>
-  <a-descriptions v-if="version" title="设备信息" :column="1" :label-style="{ width: '8em' }">
+  <a-descriptions v-if="device" title="设备" :column="1" :label-style="{ width: '8em' }">
+    <a-descriptions-item label="厂商名称">
+      <code>{{ device.manufacturerName }}</code>
+    </a-descriptions-item>
+    <a-descriptions-item label="产品名称">
+      <code>{{ device.productName }}</code>
+    </a-descriptions-item>
+    <a-descriptions-item label="VID">
+      <code>{{ device.vendorId.toString(16).padStart(4, '0') }}</code>
+    </a-descriptions-item>
+    <a-descriptions-item label="PID">
+      <code>{{ device.productId.toString(16).padStart(4, '0') }}</code>
+    </a-descriptions-item>
+    <a-descriptions-item label="序列号">
+      <code>{{ device.serialNumber }}</code>
+    </a-descriptions-item>
+  </a-descriptions>
+  <a-divider />
+  <a-descriptions v-if="version" title="固件" :column="1" :label-style="{ width: '8em' }">
     <a-descriptions-item label="固件版本">
       <a :href="`https://github.com/xingrz/zmk-config_helloword_hw-75/tree/${version.appVersion}`" target="_blank"
         noreferred>
@@ -29,7 +47,7 @@ import { toRefs } from 'vue';
 import { onDeviceConnected, useUsbComm } from '@/stores/usb';
 
 const comm = useUsbComm();
-const { version } = toRefs(comm);
+const { device, version } = toRefs(comm);
 
 onDeviceConnected(comm, () => comm.getVersion());
 </script>
