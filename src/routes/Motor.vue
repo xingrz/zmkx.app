@@ -35,7 +35,9 @@
         :style="{ textAlign: 'right' }" />
     </a-col>
     <a-col :xs="24" :md="8" :lg="4">
-      <a-statistic title="目标角度" :precision="1" :value="radToDeg(radNorm(motorState.targetAngle))" suffix="°"
+      <a-statistic title="目标角度" :precision="1"
+        :value="motorState.controlMode == MotorState.ControlMode.ANGLE ? radToDeg(radNorm(motorState.targetAngle)) : `---`"
+        :suffix="motorState.controlMode == MotorState.ControlMode.ANGLE ? '°' : undefined"
         :style="{ textAlign: 'right' }" />
     </a-col>
     <a-col :xs="24" :md="8" :lg="4">
