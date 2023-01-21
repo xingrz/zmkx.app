@@ -67,6 +67,7 @@ message KnobConfig {
     SPRING = 3;
     DAMPED = 4;
     SPIN = 5;
+    RATCHET = 6;
   }
 }
 

@@ -18,6 +18,7 @@
     <a-radio-button :value="KnobConfig.Mode.SPRING">弹簧</a-radio-button>
     <a-radio-button :value="KnobConfig.Mode.DAMPED">阻尼</a-radio-button>
     <a-radio-button :value="KnobConfig.Mode.SPIN">旋转</a-radio-button>
+    <a-radio-button :value="KnobConfig.Mode.RATCHET">棘轮</a-radio-button>
   </a-radio-group>
 
   <a-divider />
