@@ -8,6 +8,7 @@ enum Action {
   KNOB_SET_CONFIG = 4;
   RGB_CONTROL = 5;
   RGB_GET_STATE = 6;
+  EINK_SET_IMAGE = 7;
 }
 
 message MessageH2D {
@@ -16,6 +17,7 @@ message MessageH2D {
     Nop nop = 2;
     KnobConfig knob_config = 3;
     RgbControl rgb_control = 4;
+    EinkImage eink_image = 5;
   }
 }
 
@@ -27,6 +29,7 @@ message MessageD2H {
     MotorState motor_state = 4;
     KnobConfig knob_config = 5;
     RgbState rgb_state = 6;
+    EinkImage eink_image = 7;
   }
 }
 
@@ -91,3 +94,9 @@ message RgbControl {
 }
 
 message RgbState { required bool on = 1; }
+
+message EinkImage {
+  required uint32 id = 1;
+  optional uint32 bits_length = 2;
+  optional bytes bits = 3;
+}

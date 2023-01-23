@@ -5,6 +5,7 @@ import { UsbCommManager } from '@/utils/usb';
 
 import {
   Action,
+  EinkImage,
   MessageH2D,
   MotorState,
   RgbControl,
@@ -40,6 +41,7 @@ export const useUsbComm = defineStore('usb', () => {
   const angleTimeline = ref<ITimedState[]>([]);
   const torqueTimeline = ref<ITimedState[]>([]);
   const rgbState = ref<RgbState>();
+  const einkImage = ref<EinkImage>();
 
   const comm = new UsbCommManager(handleTransferIn, handleDisconnected);
 
@@ -57,6 +59,9 @@ export const useUsbComm = defineStore('usb', () => {
     }
     if (res.payload == 'rgbState' && res.rgbState) {
       rgbState.value = res.rgbState;
+    }
+    if (res.payload == 'einkImage' && res.einkImage) {
+      einkImage.value = res.einkImage;
     }
   }
 
@@ -155,6 +160,14 @@ export const useUsbComm = defineStore('usb', () => {
     }));
   }
 
+  async function setEinkImage(id: number, bits: Uint8Array): Promise<void> {
+    await comm.send(MessageH2D.create({
+      action: Action.EINK_SET_IMAGE,
+      payload: 'einkImage',
+      einkImage: { id, bitsLength: bits.length, bits },
+    }));
+  }
+
   return {
     device,
     version,
@@ -163,6 +176,7 @@ export const useUsbComm = defineStore('usb', () => {
     angleTimeline,
     torqueTimeline,
     rgbState,
+    einkImage,
     resetTimelines,
     open,
     close,
@@ -172,6 +186,7 @@ export const useUsbComm = defineStore('usb', () => {
     setKnobConfig,
     sendRgbControl,
     getRgbState,
+    setEinkImage,
   };
 });
 

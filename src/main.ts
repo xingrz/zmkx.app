@@ -24,6 +24,11 @@ app.use(createRouter({
       component: () => import('@/routes/Rgb.vue'),
     },
     {
+      path: '/eink',
+      name: 'eink',
+      component: () => import('@/routes/Eink.vue'),
+    },
+    {
       path: '/motor',
       name: 'motor',
       component: () => import('@/routes/Motor.vue'),
