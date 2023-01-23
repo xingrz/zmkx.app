@@ -39,9 +39,17 @@
       </a-menu>
     </a-layout-sider>
     <a-layout-content :class="$style.main">
-      <router-view v-slot="{ Component }">
-        <component v-if="device" :is="Component" />
+      <router-view v-slot="{ Component }" v-if="device">
+        <component :is="Component" />
       </router-view>
+      <a-alert v-else message="提示" type="info" :class="$style.help">
+        <template #description>
+          <p>这是 HW-75 Dynamic 的控制面板。请点击左侧的「连接设备」，从弹出的窗口中选择 HW-75 Dynamic。</p>
+          <p>本面板需要搭配 <a href="https://github.com/xingrz/zmk-config_helloword_hw-75" target="_blank">ZMK 固件</a>使用。</p>
+          <p>Windows 用户需使用 <a href="https://zadig.akeo.ie/" target="_blank">Zadig</a> 安装 libusb 驱动；Linux
+            用户需要自行增加 udev 规则；macOS 用户无需任何设置。如无法找到设备，请检查固件是否最新版本、驱动是否正确安装。</p>
+        </template>
+      </a-alert>
     </a-layout-content>
   </a-layout>
 </template>
@@ -134,5 +142,14 @@ async function connect() {
 
 .main {
   padding: 16px 64px 0;
+}
+
+.help {
+  max-width: 640px;
+
+  p {
+    margin-top: 16px;
+    margin-bottom: 0;
+  }
 }
 </style>
