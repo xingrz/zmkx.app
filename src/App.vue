@@ -45,9 +45,8 @@
       <a-alert v-else message="提示" type="info" :class="$style.help">
         <template #description>
           <p>这是 HW-75 Dynamic 的控制面板。请点击左侧的「连接设备」，从弹出的窗口中选择 HW-75 Dynamic。</p>
-          <p>本面板需要搭配 <a href="https://github.com/xingrz/zmk-config_helloword_hw-75" target="_blank">ZMK 固件</a>使用。</p>
-          <p>Windows 用户需使用 <a href="https://zadig.akeo.ie/" target="_blank">Zadig</a> 安装 libusb 驱动；Linux
-            用户需要自行增加 udev 规则；macOS 用户无需任何设置。如无法找到设备，请检查固件是否最新版本、驱动是否正确安装。</p>
+          <p>本面板需要搭配 <a :href="URL_ZMK" target="_blank">ZMK 固件</a>使用。</p>
+          <p>如无法找到或无法连接设备，请参考 <a :href="URL_ZMK_WIKI" target="_blank">Wiki 上的相关说明</a>。</p>
         </template>
       </a-alert>
     </a-layout-content>
@@ -65,6 +64,9 @@ import {
   Loading3QuartersOutlined,
 } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
+
+const URL_ZMK = `https://github.com/xingrz/zmk-config_helloword_hw-75`;
+const URL_ZMK_WIKI = `${URL_ZMK}/wiki/%E4%B8%8A%E4%BD%8D%E6%9C%BA%E9%A9%B1%E5%8A%A8-(%E6%89%A9%E5%B1%95)`;
 
 import { useUsbComm } from '@/stores/usb';
 
