@@ -203,6 +203,6 @@ export function onDeviceConnected(store: IUsbCommStore, callback: (device: USBDe
     }, 0);
   }
 
-  onMounted(() => { console.log('mounted', device.value); onConnected() });
-  watch(device, (dev) => { console.log('device', device.value); onConnected() });
+  onMounted(onConnected);
+  watch(device, onConnected);
 }
