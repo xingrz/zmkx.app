@@ -24,28 +24,28 @@
   <a-divider />
 
   <a-row v-if="motorState" :gutter="[8, 8]">
-    <a-col :xs="24" :md="8" :lg="4">
+    <a-col :xs="12" :md="8" :lg="4">
       <a-statistic title="控制模式" :value="controlModeNames[motorState.controlMode]" :style="{ textAlign: 'right' }" />
     </a-col>
-    <a-col :xs="24" :md="8" :lg="4">
+    <a-col :xs="12" :md="8" :lg="4">
       <a-statistic title="当前角度" :precision="1" :value="radToDeg(radNorm(motorState.currentAngle))" suffix="°"
         :style="{ textAlign: 'right' }" />
     </a-col>
-    <a-col :xs="24" :md="8" :lg="4">
+    <a-col :xs="12" :md="8" :lg="4">
       <a-statistic title="当前速度" :precision="2" :value="motorState.currentVelocity" suffix="rad/s"
         :style="{ textAlign: 'right' }" />
     </a-col>
-    <a-col :xs="24" :md="8" :lg="4">
+    <a-col :xs="12" :md="8" :lg="4">
       <a-statistic title="目标角度" :precision="1"
         :value="motorState.controlMode == MotorState.ControlMode.ANGLE ? radToDeg(radNorm(motorState.targetAngle)) : `---`"
         :suffix="motorState.controlMode == MotorState.ControlMode.ANGLE ? '°' : undefined"
         :style="{ textAlign: 'right' }" />
     </a-col>
-    <a-col :xs="24" :md="8" :lg="4">
+    <a-col :xs="12" :md="8" :lg="4">
       <a-statistic title="目标速度" :precision="2" :value="motorState.targetVelocity" suffix="rad/s"
         :style="{ textAlign: 'right' }" />
     </a-col>
-    <a-col :xs="24" :md="8" :lg="4">
+    <a-col :xs="12" :md="8" :lg="4">
       <a-statistic title="目标电压" :precision="3" :value="motorState.targetVoltage" suffix="V"
         :style="{ textAlign: 'right' }" />
     </a-col>

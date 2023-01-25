@@ -7,9 +7,11 @@
       <p class="ant-upload-text">点击选择图片，或将图片直接拖放到此处</p>
     </a-upload-dragger>
   </div>
-  <a-space :size="32" direction="horizontal" align="start" v-else>
-    <img :src="preview" :class="$style.preview" />
-    <div>
+  <a-row type="flex" :gutter="[32, 32]" v-else>
+    <a-col flex="0">
+      <img :src="preview" :class="$style.preview" />
+    </a-col>
+    <a-col flex="auto" :xs="24" :lg="8">
       <p>
         你可以调整阈值，以使图片达到最适合墨水屏的效果。
       </p>
@@ -26,8 +28,8 @@
           <a-button type="text" @click="clear" :disabled="downloading">重新选择</a-button>
         </a-space>
       </p>
-    </div>
-  </a-space>
+    </a-col>
+  </a-row>
 </template>
 
 <script lang="ts" setup>
@@ -108,6 +110,10 @@ async function download(): Promise<void> {
     display: flex !important;
     flex-direction: column;
     justify-content: center;
+  }
+
+  :global(.ant-upload-text) {
+    padding: 24px;
   }
 }
 
