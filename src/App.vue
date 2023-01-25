@@ -84,7 +84,7 @@ watch(device, (device) => {
   if (device) {
     message.success('设备已连接');
   } else {
-    message.success('设备已断开');
+    message.info('设备已断开');
   }
 });
 
@@ -93,6 +93,14 @@ async function connect() {
   try {
     connecting.value = true;
     await comm.open();
+  } catch (e) {
+    console.error(e);
+    if (e instanceof Error) {
+      if (e.message.includes('No device selected')) {
+        return;
+      }
+      message.error('设备连接失败');
+    }
   } finally {
     connecting.value = false;
   }
