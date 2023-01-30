@@ -70,7 +70,7 @@ export function centerOf(container: ISize): IPosition {
   return { x: container.width / 2, y: container.height / 2 };
 }
 
-export async function binarize(input: ImageBitmap, target: ISize, contrast: number, inverted: boolean): Promise<ImageBitmap> {
+export async function binarize(input: ImageBitmap, target: ISize, contrast: number, inverted: boolean, dither: boolean): Promise<ImageBitmap> {
   const canvas = document.createElement('canvas');
   canvas.width = target.width;
   canvas.height = target.height;
@@ -83,12 +83,22 @@ export async function binarize(input: ImageBitmap, target: ISize, contrast: numb
 
   const threshold = 255 * contrast / 100;
 
+  function set(i: number, color: number) {
+    data[i] = data[i + 1] = data[i + 2] = Math.max(Math.min(0xFF, color), 0x00);
+  }
+
   for (let i = 0; i < data.length; i += 4) {
     const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-    if (avg < threshold) {
-      data[i] = data[i + 1] = data[i + 2] = inverted ? 255 : 0;
-    } else {
-      data[i] = data[i + 1] = data[i + 2] = inverted ? 0 : 255;
+    let color = avg > threshold ? 0xFF : 0x00;
+    set(i, inverted ? 0xFF - color : color);
+
+    if (dither) {
+      const error = avg - color;
+      const w = canvas.width * 4;
+      set(i + 4, data[i + 4] + error * 7 / 16);
+      set(i - 4 + w, data[i - 4 + w] + error * 3 / 16);
+      set(i + w, data[i + w] + error * 5 / 16);
+      set(i + 4 + w, data[i + 4 + w] + error * 1 / 16);
     }
   }
 

@@ -22,6 +22,9 @@
       <p>
         <a-checkbox v-model:checked="inverted" :disabled="downloading">反色</a-checkbox>
       </p>
+      <p>
+        <a-checkbox v-model:checked="dither" :disabled="downloading">抖动</a-checkbox>
+      </p>
       <p :style="{ marginTop: '32px' }">
         <a-space>
           <a-button type="primary" @click="download" :loading="downloading">更新到设备</a-button>
@@ -49,6 +52,7 @@ device.height = 296;
 
 const threshold = ref(50);
 const inverted = ref(false);
+const dither = ref(true);
 
 function handleFile({ file }: { file: File }): void {
   selected.value = file;
@@ -61,9 +65,9 @@ function clear(): void {
 }
 
 const target = ref<ImageBitmap>();
-watch([selected, threshold, inverted], async ([file, threshold, inverted]) => {
+watch([selected, threshold, inverted, dither], async ([file, threshold, inverted, dither]) => {
   const source = file && await createImageBitmap(file);
-  target.value = source && await binarize(source, scaleInside(device, source), threshold, inverted);
+  target.value = source && await binarize(source, scaleInside(device, source), threshold, inverted, dither);
 });
 
 const preview = ref<string>();
