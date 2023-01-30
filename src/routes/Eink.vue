@@ -63,7 +63,7 @@ function clear(): void {
 const target = ref<ImageBitmap>();
 watch([selected, threshold, inverted], async ([file, threshold, inverted]) => {
   const source = file && await createImageBitmap(file);
-  target.value = source && await binarize(source, threshold, inverted);
+  target.value = source && await binarize(source, scaleInside(device, source), threshold, inverted);
 });
 
 const preview = ref<string>();

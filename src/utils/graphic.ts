@@ -70,13 +70,13 @@ export function centerOf(container: ISize): IPosition {
   return { x: container.width / 2, y: container.height / 2 };
 }
 
-export async function binarize(input: ImageBitmap, contrast: number, inverted: boolean): Promise<ImageBitmap> {
+export async function binarize(input: ImageBitmap, target: ISize, contrast: number, inverted: boolean): Promise<ImageBitmap> {
   const canvas = document.createElement('canvas');
-  canvas.width = input.width;
-  canvas.height = input.height;
+  canvas.width = target.width;
+  canvas.height = target.height;
 
   const ctx = canvas.getContext('2d')!;
-  ctx.drawImage(input, 0, 0);
+  ctx.drawImage(input, 0, 0, target.width, target.height);
 
   const imageData = ctx.getImageData(0, 0, input.width, input.height);
   const data = imageData.data;
