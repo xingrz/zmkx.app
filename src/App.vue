@@ -1,7 +1,7 @@
 <template>
   <a-layout :class="$style.container">
     <a-layout-sider v-model:collapsed="collapsed" breakpoint="lg" :style="{ background: 'none' }">
-      <div :class="$style.logo" v-show="!collapsed">Dynamic</div>
+      <div :class="$style.logo" v-show="!collapsed">ZMKX</div>
       <div :class="$style.device">
         <template v-if="collapsed">
           <a-button v-if="device" shape="circle" size="large" @click="comm.close">
@@ -142,7 +142,7 @@ async function connect() {
 .logo {
   height: 64px;
   font-family: 'Courier New', Courier, monospace;
-  font-size: 40px;
+  font-size: 60px;
   line-height: 64px;
   text-align: center;
   margin-top: 16px;
