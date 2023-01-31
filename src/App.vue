@@ -31,19 +31,19 @@
           </template>
           关于
         </a-menu-item>
-        <a-menu-item key="rgb">
+        <a-menu-item key="rgb" v-if="!version?.features || version.features.rgb">
           <template #icon>
             <alert-outlined />
           </template>
           灯效
         </a-menu-item>
-        <a-menu-item key="eink">
+        <a-menu-item key="eink" v-if="!version?.features || version.features.eink">
           <template #icon>
             <project-outlined />
           </template>
           墨水屏
         </a-menu-item>
-        <a-menu-item key="motor">
+        <a-menu-item key="motor" v-if="!version?.features || version.features.knob">
           <template #icon>
             <loading-outlined v-if="comm.knobConfig?.demo" />
             <loading3-quarters-outlined v-else />
@@ -97,10 +97,12 @@ function navigate({ key }: { key: string }) {
 
 const comm = useUsbComm();
 
-const { device } = toRefs(comm);
-watch(device, (device) => {
-  if (device) {
+const { device, version } = toRefs(comm);
+watch([device, version], ([device, version]) => {
+  if (device && version) {
     message.success('设备已连接');
+  } else if (device && !version) {
+    setTimeout(() => comm.getVersion(), 0);
   } else {
     message.info('设备已断开');
   }

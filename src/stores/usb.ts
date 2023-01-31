@@ -67,6 +67,7 @@ export const useUsbComm = defineStore('usb', () => {
 
   function handleDisconnected(): void {
     device.value = undefined;
+    version.value = undefined;
   }
 
   function updateAngleTimeline({ timestamp, currentAngle, targetAngle, controlMode }: MotorState): void {

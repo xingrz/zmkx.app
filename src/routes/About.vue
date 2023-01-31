@@ -44,10 +44,8 @@
 <script lang="ts" setup>
 import { toRefs } from 'vue';
 
-import { onDeviceConnected, useUsbComm } from '@/stores/usb';
+import { useUsbComm } from '@/stores/usb';
 
 const comm = useUsbComm();
 const { device, version } = toRefs(comm);
-
-onDeviceConnected(comm, () => comm.getVersion());
 </script>
