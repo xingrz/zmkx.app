@@ -106,6 +106,9 @@ export const useUsbComm = defineStore('usb', () => {
 
   async function open(): Promise<void> {
     device.value = await comm.open();
+    if (!device.value) {
+      throw new Error('Device not supported');
+    }
   }
 
   async function close(): Promise<void> {
