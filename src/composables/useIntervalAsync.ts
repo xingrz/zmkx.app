@@ -7,7 +7,9 @@ export default function useIntervalAsync(callback: () => Promise<void>, ms: numb
 
   async function handler() {
     await callback();
-    timer.value = setTimeout(handler, ms);
+    if (timer.value) {
+      timer.value = setTimeout(handler, ms);
+    }
   }
 
   onMounted(() => {
