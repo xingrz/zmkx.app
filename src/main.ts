@@ -31,7 +31,7 @@ app.use(createRouter({
     {
       path: '/motor',
       name: 'motor',
-      component: () => import('@/routes/MotorDemo.vue'),
+      component: () => import('@/routes/Motor.vue'),
     },
   ],
 }));

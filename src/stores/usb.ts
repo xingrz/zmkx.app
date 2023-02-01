@@ -148,6 +148,14 @@ export const useUsbComm = defineStore('usb', () => {
     }));
   }
 
+  async function updateKnobPref(pref: KnobConfig.Pref): Promise<void> {
+    await comm.send(MessageH2D.create({
+      action: Action.KNOB_UPDATE_PREF,
+      payload: 'knobPref',
+      knobPref: pref,
+    }));
+  }
+
   async function sendRgbControl(command: RgbControl.Command): Promise<void> {
     await comm.send(MessageH2D.create({
       action: Action.RGB_CONTROL,
@@ -196,6 +204,7 @@ export const useUsbComm = defineStore('usb', () => {
     getMotorState,
     getKnobConfig,
     setKnobConfig,
+    updateKnobPref,
     sendRgbControl,
     getRgbState,
     setRgbState,
