@@ -1,5 +1,5 @@
 {
-  "name": "dynamic-control",
+  "name": "zmkx.app",
   "private": true,
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 8080",
