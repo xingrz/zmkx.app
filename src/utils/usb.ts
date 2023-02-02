@@ -20,14 +20,14 @@ export class UsbCommManager {
     private readonly onMessage: (res: MessageD2H) => void,
     private readonly onDisconnected: () => void,
   ) {
-    navigator.usb.addEventListener('disconnect', () => {
+    navigator.usb?.addEventListener('disconnect', () => {
       this.onDisconnected();
       this.device = undefined;
     });
   }
 
   async open(): Promise<USBDevice | undefined> {
-    const device = await navigator.usb.requestDevice({
+    const device = await navigator.usb?.requestDevice({
       filters: [
         { vendorId: USB_VID, productId: USB_PID },
       ],
