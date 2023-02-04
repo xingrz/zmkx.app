@@ -13,11 +13,13 @@
     "ant-design-vue": "^3.2.15",
     "pinia": "^2.0.29",
     "protobufjs": "^7.1.2",
+    "throttle-debounce": "^5.0.0",
     "vue": "^3.2.45",
     "vue-router": "^4.1.6"
   },
   "devDependencies": {
     "@types/node": "^18.11.18",
+    "@types/throttle-debounce": "^5.0.0",
     "@types/w3c-web-usb": "^1.0.6",
     "@vitejs/plugin-vue": "^4.0.0",
     "@vue/tsconfig": "^0.1.3",

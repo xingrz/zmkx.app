@@ -164,6 +164,14 @@ export const useUsbComm = defineStore('usb', () => {
     }));
   }
 
+  async function setRgbState(state: RgbState): Promise<void> {
+    await comm.send(MessageH2D.create({
+      action: Action.RGB_SET_STATE,
+      payload: 'rgbState',
+      rgbState: state,
+    }));
+  }
+
   async function setEinkImage(id: number, bits: Uint8Array): Promise<void> {
     await comm.send(MessageH2D.create({
       action: Action.EINK_SET_IMAGE,
@@ -190,6 +198,7 @@ export const useUsbComm = defineStore('usb', () => {
     setKnobConfig,
     sendRgbControl,
     getRgbState,
+    setRgbState,
     setEinkImage,
   };
 });
@@ -204,7 +213,7 @@ export function onDeviceConnected(store: IUsbCommStore, callback: (device: USBDe
       if (device.value) {
         callback(device.value);
       }
-    }, 0);
+    }, 10);
   }
 
   onMounted(onConnected);
