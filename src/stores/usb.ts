@@ -1,7 +1,8 @@
 import { onMounted, ref, toRef, watch } from 'vue';
 import { defineStore } from 'pinia';
 
-import { UsbCommManager } from '@/utils/usb';
+import type { IUsbCommTransport } from '@/utils/usb/usb';
+import { UsbCommVendorTransport } from '@/utils/usb/usb-vendor';
 
 import {
   Action,
@@ -32,6 +33,10 @@ function updateTimeline(current: ITimedState[], items: ITimedState[], limit: num
   ], limit);
 }
 
+export enum TransportType {
+  USB_VENDOR,
+}
+
 export const useUsbComm = defineStore('usb', () => {
   const device = ref<USBDevice>();
 
@@ -43,7 +48,7 @@ export const useUsbComm = defineStore('usb', () => {
   const rgbState = ref<RgbState>();
   const einkImage = ref<EinkImage>();
 
-  const comm = new UsbCommManager(handleTransferIn, handleDisconnected);
+  let comm: IUsbCommTransport | undefined;
 
   function handleTransferIn(res: MessageD2H): void {
     if (res.payload == 'version' && res.version) {
@@ -105,7 +110,13 @@ export const useUsbComm = defineStore('usb', () => {
     torqueTimeline.value = [];
   }
 
-  async function open(): Promise<void> {
+  async function open(type: TransportType = TransportType.USB_VENDOR): Promise<void> {
+    if (type == TransportType.USB_VENDOR) {
+      comm = new UsbCommVendorTransport(handleTransferIn, handleDisconnected);
+    } else {
+      throw new Error(`Unsupported transport: ${TransportType[type]}`);
+    }
+
     device.value = await comm.open();
     if (!device.value) {
       throw new Error('Device not supported');
@@ -113,11 +124,11 @@ export const useUsbComm = defineStore('usb', () => {
   }
 
   async function close(): Promise<void> {
-    await comm.close();
+    await comm?.close();
   }
 
   async function getVersion(): Promise<void> {
-    await comm.send(MessageH2D.create({
+    await comm?.send(MessageH2D.create({
       action: Action.VERSION,
       payload: 'nop',
       nop: {},
@@ -125,7 +136,7 @@ export const useUsbComm = defineStore('usb', () => {
   }
 
   async function getMotorState(): Promise<void> {
-    await comm.send(MessageH2D.create({
+    await comm?.send(MessageH2D.create({
       action: Action.MOTOR_GET_STATE,
       payload: 'nop',
       nop: {},
@@ -133,7 +144,7 @@ export const useUsbComm = defineStore('usb', () => {
   }
 
   async function getKnobConfig(): Promise<void> {
-    await comm.send(MessageH2D.create({
+    await comm?.send(MessageH2D.create({
       action: Action.KNOB_GET_CONFIG,
       payload: 'nop',
       nop: {},
@@ -141,7 +152,7 @@ export const useUsbComm = defineStore('usb', () => {
   }
 
   async function setKnobConfig(config: KnobConfig): Promise<void> {
-    await comm.send(MessageH2D.create({
+    await comm?.send(MessageH2D.create({
       action: Action.KNOB_SET_CONFIG,
       payload: 'knobConfig',
       knobConfig: config,
@@ -149,7 +160,7 @@ export const useUsbComm = defineStore('usb', () => {
   }
 
   async function updateKnobPref(pref: KnobConfig.Pref): Promise<void> {
-    await comm.send(MessageH2D.create({
+    await comm?.send(MessageH2D.create({
       action: Action.KNOB_UPDATE_PREF,
       payload: 'knobPref',
       knobPref: pref,
@@ -157,7 +168,7 @@ export const useUsbComm = defineStore('usb', () => {
   }
 
   async function sendRgbControl(command: RgbControl.Command): Promise<void> {
-    await comm.send(MessageH2D.create({
+    await comm?.send(MessageH2D.create({
       action: Action.RGB_CONTROL,
       payload: 'rgbControl',
       rgbControl: { command },
@@ -165,7 +176,7 @@ export const useUsbComm = defineStore('usb', () => {
   }
 
   async function getRgbState(): Promise<void> {
-    await comm.send(MessageH2D.create({
+    await comm?.send(MessageH2D.create({
       action: Action.RGB_GET_STATE,
       payload: 'nop',
       nop: {},
@@ -173,7 +184,7 @@ export const useUsbComm = defineStore('usb', () => {
   }
 
   async function setRgbState(state: RgbState): Promise<void> {
-    await comm.send(MessageH2D.create({
+    await comm?.send(MessageH2D.create({
       action: Action.RGB_SET_STATE,
       payload: 'rgbState',
       rgbState: state,
@@ -181,7 +192,7 @@ export const useUsbComm = defineStore('usb', () => {
   }
 
   async function setEinkImage(id: number, bits: Uint8Array): Promise<void> {
-    await comm.send(MessageH2D.create({
+    await comm?.send(MessageH2D.create({
       action: Action.EINK_SET_IMAGE,
       payload: 'einkImage',
       einkImage: { id, bitsLength: bits.length, bits },

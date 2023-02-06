@@ -1,3 +1,4 @@
+import type { IUsbCommTransport, OnDisconnected, OnMessage } from './usb';
 import { Action, MessageD2H, MessageH2D } from '@/proto/comm.proto';
 
 const USB_VID = 0x1d50;
@@ -7,7 +8,7 @@ const USB_COMM_INTF_CLASS = 0xff;
 const USB_COMM_INTF_SUBCLASS = 0;
 const USB_COMM_INTF_PROTOCOL = 0;
 
-export class UsbCommManager {
+export class UsbCommVendorTransport implements IUsbCommTransport {
 
   private device: USBDevice | undefined;
 
@@ -17,8 +18,8 @@ export class UsbCommManager {
   private queueIn: Uint8Array | undefined;
 
   constructor(
-    private readonly onMessage: (res: MessageD2H) => void,
-    private readonly onDisconnected: () => void,
+    private readonly onMessage: OnMessage,
+    private readonly onDisconnected: OnDisconnected,
   ) {
     navigator.usb?.addEventListener('disconnect', () => {
       this.onDisconnected();
