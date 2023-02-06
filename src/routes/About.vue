@@ -1,9 +1,6 @@
 <template>
   <a-descriptions v-if="device" title="设备" :column="1" :label-style="{ width: '8em' }">
-    <a-descriptions-item label="厂商名称">
-      <code>{{ device.manufacturerName }}</code>
-    </a-descriptions-item>
-    <a-descriptions-item label="产品名称">
+    <a-descriptions-item label="设备">
       <code>{{ device.productName }}</code>
     </a-descriptions-item>
     <a-descriptions-item label="VID">
@@ -11,9 +8,6 @@
     </a-descriptions-item>
     <a-descriptions-item label="PID">
       <code>{{ device.productId.toString(16).padStart(4, '0') }}</code>
-    </a-descriptions-item>
-    <a-descriptions-item label="序列号">
-      <code>{{ device.serialNumber }}</code>
     </a-descriptions-item>
   </a-descriptions>
   <a-divider />

@@ -20,6 +20,7 @@
   "devDependencies": {
     "@types/node": "^18.11.18",
     "@types/throttle-debounce": "^5.0.0",
+    "@types/w3c-web-hid": "^1.0.3",
     "@types/w3c-web-usb": "^1.0.6",
     "@vitejs/plugin-vue": "^4.0.0",
     "@vue/tsconfig": "^0.1.3",

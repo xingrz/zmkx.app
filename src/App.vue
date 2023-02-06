@@ -9,8 +9,8 @@
               <disconnect-outlined />
             </template>
           </a-button>
-          <a-button v-else shape="circle" size="large" type="primary" :disabled="!supportWebUsb" :loading="connecting"
-            @click="connect">
+          <a-button v-else shape="circle" size="large" type="primary" :disabled="!supportWebHid" :loading="connecting"
+            @click="() => connect(TransportType.USB_HID)">
             <template #icon>
               <usb-outlined />
             </template>
@@ -20,8 +20,8 @@
           <a-button v-if="device" shape="round" size="large" block @click="comm.close">
             断开设备
           </a-button>
-          <a-button v-else shape="round" size="large" block type="primary" :disabled="!supportWebUsb"
-            :loading="connecting" @click="connect">
+          <a-button v-else shape="round" size="large" block type="primary" :disabled="!supportWebHid"
+            :loading="connecting" @click="() => connect(TransportType.USB_HID)">
             连接设备
           </a-button>
         </template>
@@ -55,20 +55,29 @@
       </a-menu>
     </a-layout-sider>
     <a-layout-content :class="{ [$style.main]: true, [$style.collapsed]: collapsed }">
-      <a-alert v-if="!supportWebUsb" message="浏览器不受支持" type="error" :class="$style.help">
+      <a-alert v-if="!supportWebHid" message="浏览器不受支持" type="error" :class="$style.help">
         <template #description>
-          <p>ZMKX 需要浏览器支持 WebUSB API 支持才能正常工作。</p>
+          <p>ZMKX 需要浏览器支持 WebHID API 支持才能正常工作。</p>
           <p>建议使用最新版本的 <a :href="URL_CHROME" target="_blank">Google Chrome</a> 或 <a :href="URL_EDGE"
               target="_blank">Microsoft Edge</a>。</p>
         </template>
       </a-alert>
-      <a-alert v-else-if="!device" message="提示" type="info" :class="$style.help">
-        <template #description>
-          <p>这是 HW-75 Dynamic 的控制面板。请点击左侧的「连接设备」，从弹出的窗口中选择 HW-75 Dynamic。</p>
-          <p>本面板需要搭配 <a :href="URL_ZMK" target="_blank">ZMK 固件</a>使用。</p>
-          <p>如无法找到或无法连接设备，请参考 <a :href="URL_ZMK_WIKI" target="_blank">Wiki 上的相关说明</a>。</p>
-        </template>
-      </a-alert>
+      <a-space v-else-if="!device" direction="vertical">
+        <a-alert message="提示" type="info" :class="$style.help">
+          <template #description>
+            <p>这是 HW-75 Dynamic 的控制面板。请点击左侧的「连接设备」，从弹出的窗口中选择 HW-75 Dynamic。</p>
+            <p>本面板需要搭配 <a :href="URL_ZMK" target="_blank">ZMK 固件</a>使用。</p>
+          </template>
+        </a-alert>
+        <a-alert message="更重要的提示" type="warning" :class="$style.help">
+          <template #description>
+            <p>如你正在使用 20230207 之前的固件，请尝试 <a-button type="primary" :loading="connecting"
+                @click="() => connect(TransportType.USB_VENDOR)">备用方法</a-button>
+            </p>
+            <p>如仍然无法找到或无法连接设备，请参考 <a :href="URL_ZMK_WIKI" target="_blank">Wiki 上的相关说明</a>。</p>
+          </template>
+        </a-alert>
+      </a-space>
       <router-view v-slot="{ Component }" v-else>
         <component :is="Component" />
       </router-view>
@@ -90,12 +99,12 @@ import {
 } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
 
-import { useUsbComm } from '@/stores/usb';
+import { useUsbComm, TransportType } from '@/stores/usb';
 
 const URL_ZMK = `https://github.com/xingrz/zmk-config_helloword_hw-75`;
 const URL_ZMK_WIKI = `${URL_ZMK}/wiki/%E4%B8%8A%E4%BD%8D%E6%9C%BA%E9%A9%B1%E5%8A%A8-(%E6%89%A9%E5%B1%95)`;
 
-const supportWebUsb = !!navigator.usb;
+const supportWebHid = !!navigator.hid;
 const URL_CHROME = 'https://www.google.com/chrome';
 const URL_EDGE = 'https://www.microsoft.com/edge';
 
@@ -122,10 +131,10 @@ watch([device, version], ([device, version]) => {
 });
 
 const connecting = ref(false);
-async function connect() {
+async function connect(type = TransportType.USB_HID) {
   try {
     connecting.value = true;
-    await comm.open();
+    await comm.open(type);
   } catch (e) {
     console.error(e);
     if (e instanceof Error) {

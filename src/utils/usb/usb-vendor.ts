@@ -8,7 +8,7 @@ const USB_COMM_INTF_CLASS = 0xff;
 const USB_COMM_INTF_SUBCLASS = 0;
 const USB_COMM_INTF_PROTOCOL = 0;
 
-export class UsbCommVendorTransport implements IUsbCommTransport {
+export class UsbCommVendorTransport implements IUsbCommTransport<USBDevice> {
 
   private device: USBDevice | undefined;
 
