@@ -102,7 +102,7 @@ import { message } from 'ant-design-vue';
 import { useUsbComm, TransportType } from '@/stores/usb';
 
 const URL_ZMK = `https://github.com/xingrz/zmk-config_helloword_hw-75`;
-const URL_ZMK_WIKI = `${URL_ZMK}/wiki/%E4%B8%8A%E4%BD%8D%E6%9C%BA%E9%A9%B1%E5%8A%A8-(%E6%89%A9%E5%B1%95)`;
+const URL_ZMK_WIKI = `${URL_ZMK}/wiki/%E4%B8%8A%E4%BD%8D%E6%9C%BA%E9%A9%B1%E5%8A%A8`;
 
 const supportWebHid = !!navigator.hid;
 const URL_CHROME = 'https://www.google.com/chrome';
