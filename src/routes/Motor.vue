@@ -1,5 +1,5 @@
 <template>
-  <template v-if="hasKnobPrefsFeature">
+  <template v-if="versionStore.useFeature('knobPrefs')">
     <a-tabs destroy-inactive-tab-pane :class="$style.tabs">
       <a-tab-pane key="prefs" tab="偏好设置">
         <motor-prefs />
@@ -15,14 +15,12 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
-import { useUsbComm } from '@/stores/usb';
+import { useVersionStore } from '@/stores/version';
 
 import MotorDemo from './MotorDemo.vue';
 import MotorPrefs from './MotorPrefs.vue';
 
-const comm = useUsbComm();
-const hasKnobPrefsFeature = computed(() => !!comm.version?.features?.knobPrefs);
+const versionStore = useVersionStore();
 </script>
 
 <style lang="scss" module>

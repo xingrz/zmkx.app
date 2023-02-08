@@ -3,7 +3,7 @@
     <a-col :xs="24" :lg="16" :xl="12">
       <a-form :label-col="{ style: { width: '100px' } }" :style="{ marginTop: '32px' }">
         <a-form-item label="开关">
-          <a-switch :disabled="!comm.rgbState" :checked="rgbOn" @update:checked="toggleRgb" />
+          <a-switch :disabled="!rgbStore.state" :checked="rgbOn" @update:checked="toggleRgb" />
         </a-form-item>
 
         <a-form-item label="色调">
@@ -105,19 +105,23 @@ import {
 import { throttle } from 'throttle-debounce';
 
 import { onDeviceConnected, useUsbComm } from '@/stores/usb';
+import { useVersionStore } from '@/stores/version';
+import { useRgbStore } from '@/stores/rgb';
 import { UsbComm } from '@/proto/comm.proto';
 
 const { Command } = UsbComm.RgbControl;
 const { Effect } = UsbComm.RgbState;
 
 const comm = useUsbComm();
-const { sendRgbControl } = comm;
-const rgbOn = computed(() => !!comm.rgbState?.on);
-const state = computed(() => comm.rgbState);
-const color = computed(() => comm.rgbState?.color);
-const fullControl = computed(() => !!comm.version?.features?.rgbFullControl);
+const versionStore = useVersionStore();
+const rgbStore = useRgbStore();
+const { sendRgbControl } = rgbStore;
+const rgbOn = computed(() => !!rgbStore.state?.on);
+const state = computed(() => rgbStore.state);
+const color = computed(() => rgbStore.state?.color);
+const fullControl = versionStore.useFeature('rgbFullControl');
 
-onDeviceConnected(comm, () => comm.getRgbState());
+onDeviceConnected(comm, () => rgbStore.getRgbState());
 
 function toggleRgb(on: boolean): void {
   if (on) {
@@ -128,11 +132,11 @@ function toggleRgb(on: boolean): void {
 }
 
 const handleColorChanged = throttle(100, (color: UsbComm.RgbState.IHSB) => {
-  comm.setRgbState({ ...state.value!, color });
+  rgbStore.setRgbState({ ...state.value!, color });
 });
 
 function handleChanged(state: UsbComm.IRgbState) {
-  comm.setRgbState(state);
+  rgbStore.setRgbState(state);
 }
 
 const isHueAdjustable = computed(() => state.value?.effect != Effect.SPECTRUM && state.value?.effect != Effect.SWIRL);

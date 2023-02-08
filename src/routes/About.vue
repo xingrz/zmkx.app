@@ -36,10 +36,13 @@
 </template>
 
 <script lang="ts" setup>
-import { toRefs } from 'vue';
+import { storeToRefs } from 'pinia';
 
 import { useUsbComm } from '@/stores/usb';
+import { useVersionStore } from '@/stores/version';
 
 const comm = useUsbComm();
-const { device, version } = toRefs(comm);
+const versionStore = useVersionStore();
+const { device } = storeToRefs(comm);
+const { version } = storeToRefs(versionStore);
 </script>

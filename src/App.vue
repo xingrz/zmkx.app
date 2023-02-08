@@ -47,7 +47,7 @@
         </a-menu-item>
         <a-menu-item key="motor" v-if="!version?.features || version.features.knob">
           <template #icon>
-            <loading-outlined v-if="comm.knobConfig?.demo" />
+            <loading-outlined v-if="knobStore.knobConfig?.demo" />
             <loading3-quarters-outlined v-else />
           </template>
           电机
@@ -86,7 +86,8 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, toRefs, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 import {
   UsbOutlined,
@@ -100,6 +101,8 @@ import {
 import { message } from 'ant-design-vue';
 
 import { useUsbComm, TransportType } from '@/stores/usb';
+import { useVersionStore } from '@/stores/version';
+import { useKnobStore } from '@/stores/knob';
 
 const URL_ZMK = `https://github.com/xingrz/zmk-config_helloword_hw-75`;
 const URL_ZMK_WIKI = `${URL_ZMK}/wiki/%E4%B8%8A%E4%BD%8D%E6%9C%BA%E9%A9%B1%E5%8A%A8`;
@@ -118,13 +121,16 @@ function navigate({ key }: { key: string }) {
 }
 
 const comm = useUsbComm();
+const versionStore = useVersionStore();
+const knobStore = useKnobStore();
 
-const { device, version } = toRefs(comm);
+const { device } = storeToRefs(comm);
+const { version } = storeToRefs(versionStore);
 watch([device, version], ([device, version]) => {
   if (device && version) {
     message.success('设备已连接');
   } else if (device && !version) {
-    setTimeout(() => comm.getVersion(), 0);
+    setTimeout(() => versionStore.getVersion(), 0);
   } else {
     message.info('设备已断开');
   }

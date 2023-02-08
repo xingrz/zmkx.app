@@ -39,10 +39,10 @@
 import { computed, ref, watch } from 'vue';
 import { ProjectOutlined } from '@ant-design/icons-vue';
 
-import { useUsbComm } from '@/stores/usb';
+import { useEinkStore } from '@/stores/eink';
 import { binarize, centerOf, scaleInside, toBits } from '@/utils/graphic';
 
-const comm = useUsbComm();
+const einkStore = useEinkStore();
 
 const selected = ref<File>();
 
@@ -96,13 +96,13 @@ watch(target, (target) => {
 });
 
 const imageId = ref<number>();
-const downloading = computed(() => typeof imageId.value != 'undefined' && imageId.value != comm.einkImage?.id);
+const downloading = computed(() => typeof imageId.value != 'undefined' && imageId.value != einkStore.einkImage?.id);
 
 async function download(): Promise<void> {
   imageId.value = Math.round(Math.random() * 1000);
   const ctx = device.getContext('2d')!;
   const bits = toBits(ctx.getImageData(0, 0, device.width, device.height));
-  await comm.setEinkImage(imageId.value, bits);
+  await einkStore.setEinkImage(imageId.value, bits);
 }
 </script>
 

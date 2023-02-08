@@ -63,10 +63,12 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, toRefs } from 'vue';
+import { onMounted } from 'vue';
+import { storeToRefs } from 'pinia';
 import { Line } from '@antv/g2plot';
 
-import { onDeviceConnected, useUsbComm, type ITimedState } from '@/stores/usb';
+import { onDeviceConnected, useUsbComm } from '@/stores/usb';
+import { useKnobStore, type ITimedState } from '@/stores/knob';
 import { UsbComm } from '@/proto/comm.proto';
 
 import useIntervalAsync from '@/composables/useIntervalAsync';
@@ -77,16 +79,17 @@ import { radNorm, radToDeg } from '@/utils/math';
 const { KnobConfig, MotorState } = UsbComm;
 
 const comm = useUsbComm();
-const { motorState, knobConfig, angleTimeline, torqueTimeline } = toRefs(comm);
+const knobStore = useKnobStore();
+const { motorState, knobConfig, angleTimeline, torqueTimeline } = storeToRefs(knobStore);
 
 function toggleDemo(demo: boolean): void {
   if (demo) {
-    comm.setKnobConfig({
+    knobStore.setKnobConfig({
       mode: UsbComm.KnobConfig.Mode.INERTIA,
       demo: true,
     });
   } else {
-    comm.setKnobConfig({
+    knobStore.setKnobConfig({
       mode: UsbComm.KnobConfig.Mode.ENCODER,
       demo: false,
     });
@@ -94,15 +97,15 @@ function toggleDemo(demo: boolean): void {
 }
 
 function changeMode(mode: UsbComm.KnobConfig.Mode): void {
-  comm.setKnobConfig({
+  knobStore.setKnobConfig({
     mode: mode,
     demo: true,
   });
 }
 
-onMounted(() => comm.resetTimelines());
-onDeviceConnected(comm, () => comm.getKnobConfig());
-useIntervalAsync(() => comm.getMotorState(), 20);
+onMounted(() => knobStore.resetTimelines());
+onDeviceConnected(comm, () => knobStore.getKnobConfig());
+useIntervalAsync(() => knobStore.getMotorState(), 20);
 
 const controlModeNames: Record<UsbComm.MotorState.ControlMode, string> = {
   [MotorState.ControlMode.TORQUE]: '力矩',

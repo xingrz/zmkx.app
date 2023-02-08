@@ -2,7 +2,8 @@
   <a-row :gutter="[16, 16]">
     <a-col :xs="24" :lg="16" :xl="12">
       <a-collapse :active-key="expended" ghost>
-        <a-collapse-panel v-for="pref in comm.knobConfig?.prefs || []" :key="pref.layerId" :header="pref.layerName">
+        <a-collapse-panel v-for="pref in knobStore.knobConfig?.prefs || []" :key="pref.layerId"
+          :header="pref.layerName">
           <template #extra>
             <a-space>
               自定义
@@ -40,18 +41,20 @@ import { computed } from 'vue';
 import { throttle } from 'throttle-debounce';
 
 import { onDeviceConnected, useUsbComm } from '@/stores/usb';
+import { useKnobStore } from '@/stores/knob';
 import { UsbComm } from '@/proto/comm.proto';
 
 const { KnobConfig } = UsbComm;
 
 const comm = useUsbComm();
+const knobStore = useKnobStore();
 
-onDeviceConnected(comm, () => comm.getKnobConfig());
+onDeviceConnected(comm, () => knobStore.getKnobConfig());
 
-const expended = computed(() => (comm.knobConfig?.prefs || [])
+const expended = computed(() => (knobStore.knobConfig?.prefs || [])
   .filter((pref) => pref.active).map((pref) => pref.layerId));
 
 const handleChanged = throttle(100, (pref: UsbComm.KnobConfig.IPref) => {
-  comm.updateKnobPref(pref);
+  knobStore.updateKnobPref(pref);
 });
 </script>
