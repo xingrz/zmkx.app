@@ -1,5 +1,7 @@
 syntax = "proto2";
 
+package UsbComm;
+
 enum Action {
   NOP = 0;
   VERSION = 1;

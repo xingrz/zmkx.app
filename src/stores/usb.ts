@@ -4,19 +4,9 @@ import { defineStore } from 'pinia';
 import type { IUsbCommDevice, IUsbCommTransport } from '@/utils/usb/usb';
 import { UsbCommVendorTransport } from '@/utils/usb/usb-vendor';
 import { UsbCommHidTransport } from '@/utils/usb/usb-hid';
-
-import {
-  Action,
-  EinkImage,
-  KnobConfig,
-  MessageH2D,
-  MotorState,
-  RgbControl,
-  RgbState,
-  type MessageD2H,
-  type Version,
-} from '@/proto/comm.proto';
 import sliceLast from '@/utils/sliceLast';
+
+import { UsbComm } from '@/proto/comm.proto';
 
 export interface ITimedState {
   timestamp: number;
@@ -42,17 +32,17 @@ export enum TransportType {
 export const useUsbComm = defineStore('usb', () => {
   const device = ref<IUsbCommDevice>();
 
-  const version = ref<Version>();
-  const motorState = ref<MotorState>();
-  const knobConfig = ref<KnobConfig>();
+  const version = ref<UsbComm.IVersion>();
+  const motorState = ref<UsbComm.IMotorState>();
+  const knobConfig = ref<UsbComm.IKnobConfig>();
   const angleTimeline = ref<ITimedState[]>([]);
   const torqueTimeline = ref<ITimedState[]>([]);
-  const rgbState = ref<RgbState>();
-  const einkImage = ref<EinkImage>();
+  const rgbState = ref<UsbComm.IRgbState>();
+  const einkImage = ref<UsbComm.IEinkImage>();
 
   let comm: IUsbCommTransport<IUsbCommDevice> | undefined;
 
-  function handleTransferIn(res: MessageD2H): void {
+  function handleTransferIn(res: UsbComm.MessageD2H): void {
     if (res.payload == 'version' && res.version) {
       version.value = res.version;
     }
@@ -65,10 +55,10 @@ export const useUsbComm = defineStore('usb', () => {
       knobConfig.value = res.knobConfig;
     }
     if (res.payload == 'knobPref' && res.knobPref) {
-      if (knobConfig.value && knobConfig.value.prefs[res.knobPref.layerId]) {
+      if (knobConfig.value && knobConfig.value?.prefs?.[res.knobPref.layerId]) {
         const prefs = [...knobConfig.value.prefs];
         prefs[res.knobPref.layerId] = { ...[res.knobPref.layerId], ...res.knobPref };
-        knobConfig.value = KnobConfig.create({
+        knobConfig.value = UsbComm.KnobConfig.create({
           ...knobConfig.value,
           prefs,
         });
@@ -87,7 +77,7 @@ export const useUsbComm = defineStore('usb', () => {
     version.value = undefined;
   }
 
-  function updateAngleTimeline({ timestamp, currentAngle, targetAngle, controlMode }: MotorState): void {
+  function updateAngleTimeline({ timestamp, currentAngle, targetAngle, controlMode }: UsbComm.IMotorState): void {
     angleTimeline.value = updateTimeline(angleTimeline.value, [
       {
         timestamp: Math.round(timestamp / 1000),
@@ -96,13 +86,13 @@ export const useUsbComm = defineStore('usb', () => {
       },
       {
         timestamp: Math.round(timestamp / 1000),
-        value: controlMode == MotorState.ControlMode.ANGLE ? Math.sin(targetAngle) : undefined,
+        value: controlMode == UsbComm.MotorState.ControlMode.ANGLE ? Math.sin(targetAngle) : undefined,
         type: 'target',
       },
     ], 500);
   }
 
-  function updateTorqueTimeline({ timestamp, currentVelocity, targetVelocity }: MotorState): void {
+  function updateTorqueTimeline({ timestamp, currentVelocity, targetVelocity }: UsbComm.IMotorState): void {
     torqueTimeline.value = updateTimeline(torqueTimeline.value, [
       {
         timestamp: Math.round(timestamp / 1000),
@@ -142,75 +132,66 @@ export const useUsbComm = defineStore('usb', () => {
   }
 
   async function getVersion(): Promise<void> {
-    await comm?.send(MessageH2D.create({
-      action: Action.VERSION,
-      payload: 'nop',
+    await comm?.send({
+      action: UsbComm.Action.VERSION,
       nop: {},
-    }));
+    });
   }
 
   async function getMotorState(): Promise<void> {
-    await comm?.send(MessageH2D.create({
-      action: Action.MOTOR_GET_STATE,
-      payload: 'nop',
+    await comm?.send({
+      action: UsbComm.Action.MOTOR_GET_STATE,
       nop: {},
-    }));
+    });
   }
 
   async function getKnobConfig(): Promise<void> {
-    await comm?.send(MessageH2D.create({
-      action: Action.KNOB_GET_CONFIG,
-      payload: 'nop',
+    await comm?.send({
+      action: UsbComm.Action.KNOB_GET_CONFIG,
       nop: {},
-    }));
+    });
   }
 
-  async function setKnobConfig(config: KnobConfig): Promise<void> {
-    await comm?.send(MessageH2D.create({
-      action: Action.KNOB_SET_CONFIG,
-      payload: 'knobConfig',
+  async function setKnobConfig(config: UsbComm.IKnobConfig): Promise<void> {
+    await comm?.send({
+      action: UsbComm.Action.KNOB_SET_CONFIG,
       knobConfig: config,
-    }));
+    });
   }
 
-  async function updateKnobPref(pref: KnobConfig.Pref): Promise<void> {
-    await comm?.send(MessageH2D.create({
-      action: Action.KNOB_UPDATE_PREF,
-      payload: 'knobPref',
+  async function updateKnobPref(pref: UsbComm.KnobConfig.IPref): Promise<void> {
+    await comm?.send({
+      action: UsbComm.Action.KNOB_UPDATE_PREF,
       knobPref: pref,
-    }));
+    });
   }
 
-  async function sendRgbControl(command: RgbControl.Command): Promise<void> {
-    await comm?.send(MessageH2D.create({
-      action: Action.RGB_CONTROL,
-      payload: 'rgbControl',
+  async function sendRgbControl(command: UsbComm.RgbControl.Command): Promise<void> {
+    await comm?.send({
+      action: UsbComm.Action.RGB_CONTROL,
       rgbControl: { command },
-    }));
+    });
   }
 
   async function getRgbState(): Promise<void> {
-    await comm?.send(MessageH2D.create({
-      action: Action.RGB_GET_STATE,
-      payload: 'nop',
+    await comm?.send({
+      action: UsbComm.Action.RGB_GET_STATE,
       nop: {},
-    }));
+    });
   }
 
-  async function setRgbState(state: RgbState): Promise<void> {
-    await comm?.send(MessageH2D.create({
-      action: Action.RGB_SET_STATE,
-      payload: 'rgbState',
+  async function setRgbState(state: UsbComm.IRgbState): Promise<void> {
+    await comm?.send({
+      action: UsbComm.Action.RGB_SET_STATE,
       rgbState: state,
-    }));
+    });
   }
 
   async function setEinkImage(id: number, bits: Uint8Array): Promise<void> {
-    await comm?.send(MessageH2D.create({
-      action: Action.EINK_SET_IMAGE,
-      payload: 'einkImage',
+    await comm?.send({
+      action: UsbComm.Action.EINK_SET_IMAGE,
       einkImage: { id, bitsLength: bits.length, bits },
-    }));
+    });
   }
 
   return {

@@ -60,7 +60,7 @@
         <a-form-item label="动画效果">
           <template v-if="fullControl">
             <a-radio-group button-style="solid" :disabled="!rgbOn" :value="state?.effect"
-              @update:value="(effect: RgbState.Effect) => handleChanged({ ...state!, effect })">
+              @update:value="(effect: UsbComm.RgbState.Effect) => handleChanged({ ...state!, effect })">
               <a-radio-button :value="Effect.SOLID">静态</a-radio-button>
               <a-radio-button :value="Effect.BREATHE">呼吸</a-radio-button>
               <a-radio-button :value="Effect.SPECTRUM">光谱</a-radio-button>
@@ -105,10 +105,10 @@ import {
 import { throttle } from 'throttle-debounce';
 
 import { onDeviceConnected, useUsbComm } from '@/stores/usb';
-import { RgbControl, RgbState } from '@/proto/comm.proto';
+import { UsbComm } from '@/proto/comm.proto';
 
-const { Command } = RgbControl;
-const { Effect } = RgbState;
+const { Command } = UsbComm.RgbControl;
+const { Effect } = UsbComm.RgbState;
 
 const comm = useUsbComm();
 const { sendRgbControl } = comm;
@@ -127,12 +127,12 @@ function toggleRgb(on: boolean): void {
   }
 }
 
-const handleColorChanged = throttle(100, (color: RgbState.IHSB) => {
-  comm.setRgbState(RgbState.create({ ...state.value, color }));
+const handleColorChanged = throttle(100, (color: UsbComm.RgbState.IHSB) => {
+  comm.setRgbState({ ...state.value!, color });
 });
 
-function handleChanged(state: RgbState) {
-  comm.setRgbState(RgbState.create(state));
+function handleChanged(state: UsbComm.IRgbState) {
+  comm.setRgbState(state);
 }
 
 const isHueAdjustable = computed(() => state.value?.effect != Effect.SPECTRUM && state.value?.effect != Effect.SWIRL);

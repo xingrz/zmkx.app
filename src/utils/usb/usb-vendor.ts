@@ -1,5 +1,5 @@
 import type { IUsbCommTransport, OnDisconnected, OnMessage } from './usb';
-import { Action, MessageD2H, MessageH2D } from '@/proto/comm.proto';
+import { UsbComm } from '@/proto/comm.proto';
 
 const USB_VID = 0x1d50;
 const USB_PID = 0x615e;
@@ -62,11 +62,11 @@ export class UsbCommVendorTransport implements IUsbCommTransport<USBDevice> {
     }
   }
 
-  async send(req: MessageH2D): Promise<void> {
+  async send(req: UsbComm.IMessageH2D): Promise<void> {
     if (!this.device || !this.epOut) return;
     const { packetSize, endpointNumber } = this.epOut;
 
-    const message = MessageH2D.encodeDelimited(req).finish();
+    const message = UsbComm.MessageH2D.encodeDelimited(req).finish();
 
     // NOTE: We do want a 0-byte buffer as EOF
     for (let i = 0; i <= message.length; i += packetSize) {
@@ -91,7 +91,7 @@ export class UsbCommVendorTransport implements IUsbCommTransport<USBDevice> {
       this.queueIn = concat(this.queueIn, buf);
       if (read.data.byteLength < this.epIn.packetSize) {
         try {
-          const res = MessageD2H.decodeDelimited(this.queueIn);
+          const res = UsbComm.MessageD2H.decodeDelimited(this.queueIn);
           this.onMessage(res);
         } catch (e) {
           console.error('Failed decoding response', e);
@@ -130,11 +130,10 @@ async function configure(device: USBDevice): Promise<[USBEndpoint, USBEndpoint] 
 }
 
 async function sync(device: USBDevice, ep: USBEndpoint): Promise<void> {
-  await device.transferOut(ep.endpointNumber, MessageH2D.encodeDelimited(MessageH2D.create({
-    action: Action.NOP,
-    payload: 'nop',
+  await device.transferOut(ep.endpointNumber, UsbComm.MessageH2D.encodeDelimited({
+    action: UsbComm.Action.NOP,
     nop: {},
-  })).finish());
+  }).finish());
 }
 
 function concat(head: Uint8Array | undefined, tail: Uint8Array): Uint8Array {

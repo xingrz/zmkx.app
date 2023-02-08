@@ -1,5 +1,5 @@
 import type { IUsbCommTransport, OnDisconnected, OnMessage } from './usb';
-import { MessageD2H, MessageH2D } from '@/proto/comm.proto';
+import { UsbComm } from '@/proto/comm.proto';
 
 const USB_VID = 0x1d50;
 const USB_PID = 0x615e;
@@ -59,10 +59,10 @@ export class UsbCommHidTransport implements IUsbCommTransport<HIDDevice> {
     }
   }
 
-  async send(req: MessageH2D): Promise<void> {
+  async send(req: UsbComm.IMessageH2D): Promise<void> {
     if (!this.device || !this.reportOut) return;
 
-    const message = MessageH2D.encodeDelimited(req).finish();
+    const message = UsbComm.MessageH2D.encodeDelimited(req).finish();
 
     // NOTE: We do want a 0-byte buffer as EOF
     for (let i = 0; i <= message.length; i += USB_COMM_PAYLOAD_SIZE) {
@@ -87,7 +87,7 @@ export class UsbCommHidTransport implements IUsbCommTransport<HIDDevice> {
     }
 
     try {
-      const res = MessageD2H.decodeDelimited(this.queueIn);
+      const res = UsbComm.MessageD2H.decodeDelimited(this.queueIn);
       this.onMessage(res);
     } catch (e) {
       console.error('Failed decoding response', e);

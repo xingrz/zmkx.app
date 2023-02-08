@@ -67,42 +67,44 @@ import { onMounted, toRefs } from 'vue';
 import { Line } from '@antv/g2plot';
 
 import { onDeviceConnected, useUsbComm, type ITimedState } from '@/stores/usb';
-import { KnobConfig, MotorState } from '@/proto/comm.proto';
+import { UsbComm } from '@/proto/comm.proto';
 
 import useIntervalAsync from '@/composables/useIntervalAsync';
 import usePlot from '@/composables/usePlot';
 
 import { radNorm, radToDeg } from '@/utils/math';
 
+const { KnobConfig, MotorState } = UsbComm;
+
 const comm = useUsbComm();
 const { motorState, knobConfig, angleTimeline, torqueTimeline } = toRefs(comm);
 
 function toggleDemo(demo: boolean): void {
   if (demo) {
-    comm.setKnobConfig(KnobConfig.create({
-      mode: KnobConfig.Mode.INERTIA,
+    comm.setKnobConfig({
+      mode: UsbComm.KnobConfig.Mode.INERTIA,
       demo: true,
-    }));
+    });
   } else {
-    comm.setKnobConfig(KnobConfig.create({
-      mode: KnobConfig.Mode.ENCODER,
+    comm.setKnobConfig({
+      mode: UsbComm.KnobConfig.Mode.ENCODER,
       demo: false,
-    }));
+    });
   }
 }
 
-function changeMode(mode: KnobConfig.Mode): void {
-  comm.setKnobConfig(KnobConfig.create({
+function changeMode(mode: UsbComm.KnobConfig.Mode): void {
+  comm.setKnobConfig({
     mode: mode,
     demo: true,
-  }));
+  });
 }
 
 onMounted(() => comm.resetTimelines());
 onDeviceConnected(comm, () => comm.getKnobConfig());
 useIntervalAsync(() => comm.getMotorState(), 20);
 
-const controlModeNames: Record<MotorState.ControlMode, string> = {
+const controlModeNames: Record<UsbComm.MotorState.ControlMode, string> = {
   [MotorState.ControlMode.TORQUE]: '力矩',
   [MotorState.ControlMode.ANGLE]: '角度',
   [MotorState.ControlMode.VELOCITY]: '速度',
