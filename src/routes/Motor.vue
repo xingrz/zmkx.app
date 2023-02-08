@@ -1,5 +1,5 @@
 <template>
-  <template v-if="versionStore.useFeature('knobPrefs')">
+  <template v-if="hasKnobPrefsFeature">
     <a-tabs destroy-inactive-tab-pane :class="$style.tabs">
       <a-tab-pane key="prefs" tab="偏好设置">
         <motor-prefs />
@@ -21,6 +21,7 @@ import MotorDemo from './MotorDemo.vue';
 import MotorPrefs from './MotorPrefs.vue';
 
 const versionStore = useVersionStore();
+const hasKnobPrefsFeature = versionStore.useFeature('knobPrefs');
 </script>
 
 <style lang="scss" module>
