@@ -8,11 +8,11 @@ import { UsbCommHidTransport } from '@/utils/usb/usb-hid';
 import {
   Action,
   EinkImage,
+  KnobConfig,
   MessageH2D,
   MotorState,
   RgbControl,
   RgbState,
-  type KnobConfig,
   type MessageD2H,
   type Version,
 } from '@/proto/comm.proto';
@@ -63,6 +63,16 @@ export const useUsbComm = defineStore('usb', () => {
     }
     if (res.payload == 'knobConfig' && res.knobConfig) {
       knobConfig.value = res.knobConfig;
+    }
+    if (res.payload == 'knobPref' && res.knobPref) {
+      if (knobConfig.value && knobConfig.value.prefs[res.knobPref.layerId]) {
+        const prefs = [...knobConfig.value.prefs];
+        prefs[res.knobPref.layerId] = { ...[res.knobPref.layerId], ...res.knobPref };
+        knobConfig.value = KnobConfig.create({
+          ...knobConfig.value,
+          prefs,
+        });
+      }
     }
     if (res.payload == 'rgbState' && res.rgbState) {
       rgbState.value = res.rgbState;

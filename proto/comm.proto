@@ -18,10 +18,10 @@ message MessageH2D {
   oneof payload {
     Nop nop = 2;
     KnobConfig knob_config = 3;
+    KnobConfig.Pref knob_pref = 6;
     RgbControl rgb_control = 4;
     RgbState rgb_state = 7;
     EinkImage eink_image = 5;
-    KnobConfig.Pref knob_pref = 6;
   }
 }
 
@@ -32,6 +32,7 @@ message MessageD2H {
     Version version = 3;
     MotorState motor_state = 4;
     KnobConfig knob_config = 5;
+    KnobConfig.Pref knob_pref = 8;
     RgbState rgb_state = 6;
     EinkImage eink_image = 7;
   }
