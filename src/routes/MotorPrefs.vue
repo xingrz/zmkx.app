@@ -38,7 +38,6 @@
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import { throttle } from 'throttle-debounce';
 
 import { onDeviceConnected, useUsbComm } from '@/stores/usb';
 import { useKnobStore } from '@/stores/knob';
@@ -54,7 +53,7 @@ onDeviceConnected(comm, () => knobStore.getKnobConfig());
 const expended = computed(() => (knobStore.knobConfig?.prefs || [])
   .filter((pref) => pref.active).map((pref) => pref.layerId));
 
-const handleChanged = throttle(100, (pref: UsbComm.KnobConfig.IPref) => {
-  knobStore.updateKnobPref(pref);
-});
+function handleChanged(pref: UsbComm.KnobConfig.IPref) {
+  knobStore.updateKnobPrefThottled(pref);
+};
 </script>

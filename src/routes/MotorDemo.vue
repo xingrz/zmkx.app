@@ -84,12 +84,12 @@ const { motorState, knobConfig, angleTimeline, torqueTimeline } = storeToRefs(kn
 
 function toggleDemo(demo: boolean): void {
   if (demo) {
-    knobStore.setKnobConfig({
+    knobStore.setKnobConfigThottled({
       mode: UsbComm.KnobConfig.Mode.INERTIA,
       demo: true,
     });
   } else {
-    knobStore.setKnobConfig({
+    knobStore.setKnobConfigThottled({
       mode: UsbComm.KnobConfig.Mode.ENCODER,
       demo: false,
     });
@@ -97,7 +97,7 @@ function toggleDemo(demo: boolean): void {
 }
 
 function changeMode(mode: UsbComm.KnobConfig.Mode): void {
-  knobStore.setKnobConfig({
+  knobStore.setKnobConfigThottled({
     mode: mode,
     demo: true,
   });

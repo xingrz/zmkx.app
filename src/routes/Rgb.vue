@@ -102,7 +102,6 @@ import {
   ArrowLeftOutlined,
   ArrowRightOutlined,
 } from '@ant-design/icons-vue';
-import { throttle } from 'throttle-debounce';
 
 import { onDeviceConnected, useUsbComm } from '@/stores/usb';
 import { useVersionStore } from '@/stores/version';
@@ -131,12 +130,12 @@ function toggleRgb(on: boolean): void {
   }
 }
 
-const handleColorChanged = throttle(100, (color: UsbComm.RgbState.IHSB) => {
-  rgbStore.setRgbState({ ...state.value!, color });
-});
+function handleColorChanged(color: UsbComm.RgbState.IHSB) {
+  rgbStore.setRgbStateThottled({ ...state.value!, color });
+}
 
 function handleChanged(state: UsbComm.IRgbState) {
-  rgbStore.setRgbState(state);
+  rgbStore.setRgbStateThottled(state);
 }
 
 const isHueAdjustable = computed(() => state.value?.effect != Effect.SPECTRUM && state.value?.effect != Effect.SWIRL);

@@ -1,5 +1,6 @@
 import { ref, watch, } from 'vue';
 import { defineStore } from 'pinia';
+import { throttle } from 'throttle-debounce';
 
 import sliceLast from '@/utils/sliceLast';
 
@@ -93,12 +94,22 @@ export const useKnobStore = defineStore('knob', () => {
     });
   }
 
+  const setKnobConfigThottled = throttle(100, (config: UsbComm.IKnobConfig) => {
+    knobConfig.value = config;
+    setKnobConfig(config);
+  });
+
   async function updateKnobPref(pref: UsbComm.KnobConfig.IPref): Promise<void> {
     await comm?.send({
       action: UsbComm.Action.KNOB_UPDATE_PREF,
       knobPref: pref,
     });
   }
+
+  const updateKnobPrefThottled = throttle(100, (pref: UsbComm.KnobConfig.IPref) => {
+    $patchKnobPref(pref);
+    updateKnobPref(pref);
+  });
 
   function $patchKnobPref(pref: UsbComm.KnobConfig.IPref): void {
     if (knobConfig.value && knobConfig.value?.prefs?.[pref.layerId]) {
@@ -127,7 +138,9 @@ export const useKnobStore = defineStore('knob', () => {
     getMotorState,
     getKnobConfig,
     setKnobConfig,
+    setKnobConfigThottled,
     updateKnobPref,
+    updateKnobPrefThottled,
     $patchKnobPref,
     $resetState,
   };

@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
+import { throttle } from 'throttle-debounce';
 
 import { UsbComm } from '@/proto/comm.proto';
 import { useUsbComm } from './usb';
@@ -30,6 +31,11 @@ export const useRgbStore = defineStore('rgb', () => {
     });
   }
 
+  const setRgbStateThottled = throttle(100, (rgbState: UsbComm.IRgbState) => {
+    state.value = rgbState;
+    setRgbState(rgbState);
+  });
+
   function $resetState(): void {
     state.value = undefined;
   }
@@ -39,6 +45,7 @@ export const useRgbStore = defineStore('rgb', () => {
     sendRgbControl,
     getRgbState,
     setRgbState,
+    setRgbStateThottled,
     $resetState,
   };
 });
