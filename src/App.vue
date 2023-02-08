@@ -126,12 +126,11 @@ const knobStore = useKnobStore();
 
 const { device } = storeToRefs(comm);
 const { version } = storeToRefs(versionStore);
-watch([device, version], ([device, version]) => {
-  if (device && version) {
+watch(device, (now, prev) => {
+  if (now && !prev) {
     message.success('设备已连接');
-  } else if (device && !version) {
     setTimeout(() => versionStore.getVersion(), 0);
-  } else {
+  } else if (!now && prev) {
     message.info('设备已断开');
   }
 });
