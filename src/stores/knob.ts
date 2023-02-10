@@ -1,77 +1,15 @@
-import { ref, watch, } from 'vue';
+import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { throttle } from 'throttle-debounce';
-
-import sliceLast from '@/utils/sliceLast';
 
 import { UsbComm } from '@/proto/comm.proto';
 import { useUsbComm } from './usb';
 
-export interface ITimedState {
-  timestamp: number;
-  value: number | undefined;
-  type: 'current' | 'target';
-}
-
-function updateTimeline(current: ITimedState[], items: ITimedState[], limit: number): ITimedState[] {
-  if (current.length > 0 && items[0].timestamp < current[current.length - 1].timestamp) {
-    current = [];
-  }
-  return sliceLast([
-    ...current,
-    ...items,
-  ], limit);
-}
-
 export const useKnobStore = defineStore('knob', () => {
   const motorState = ref<UsbComm.IMotorState>();
   const knobConfig = ref<UsbComm.IKnobConfig>();
-  const angleTimeline = ref<ITimedState[]>([]);
-  const torqueTimeline = ref<ITimedState[]>([]);
 
   const comm = useUsbComm();
-
-  watch(motorState, (motorState) => {
-    if (motorState) {
-      updateAngleTimeline(motorState);
-      updateTorqueTimeline(motorState);
-    }
-  });
-
-  function updateAngleTimeline({ timestamp, currentAngle, targetAngle, controlMode }: UsbComm.IMotorState): void {
-    angleTimeline.value = updateTimeline(angleTimeline.value, [
-      {
-        timestamp: Math.round(timestamp / 1000),
-        value: Math.sin(currentAngle),
-        type: 'current',
-      },
-      {
-        timestamp: Math.round(timestamp / 1000),
-        value: controlMode == UsbComm.MotorState.ControlMode.ANGLE ? Math.sin(targetAngle) : undefined,
-        type: 'target',
-      },
-    ], 500);
-  }
-
-  function updateTorqueTimeline({ timestamp, currentVelocity, targetVelocity }: UsbComm.IMotorState): void {
-    torqueTimeline.value = updateTimeline(torqueTimeline.value, [
-      {
-        timestamp: Math.round(timestamp / 1000),
-        value: currentVelocity,
-        type: 'current',
-      },
-      {
-        timestamp: Math.round(timestamp / 1000),
-        value: targetVelocity,
-        type: 'target',
-      },
-    ], 500);
-  }
-
-  function resetTimelines() {
-    angleTimeline.value = [];
-    torqueTimeline.value = [];
-  }
 
   async function getMotorState(): Promise<void> {
     await comm?.send({
@@ -125,16 +63,11 @@ export const useKnobStore = defineStore('knob', () => {
   function $resetState(): void {
     motorState.value = undefined;
     knobConfig.value = undefined;
-    angleTimeline.value = [];
-    torqueTimeline.value = [];
   }
 
   return {
     motorState,
     knobConfig,
-    angleTimeline,
-    torqueTimeline,
-    resetTimelines,
     getMotorState,
     getKnobConfig,
     setKnobConfig,

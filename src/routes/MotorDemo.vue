@@ -52,35 +52,35 @@
   </a-row>
 
   <section :style="{ marginTop: '32px' }">
-    <h3>实时角度</h3>
     <div ref="angleLineEl" :style="{ height: '180px' }" />
   </section>
 
   <section :style="{ marginTop: '32px' }">
-    <h3>实时力矩</h3>
     <div ref="torqueLineEl" :style="{ height: '180px' }" />
   </section>
 </template>
 
 <script lang="ts" setup>
-import { onMounted } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
-import { Line } from '@antv/g2plot';
+import DataSet from '@antv/data-set';
 
 import { onDeviceConnected, useUsbComm } from '@/stores/usb';
-import { useKnobStore, type ITimedState } from '@/stores/knob';
+import { useKnobStore } from '@/stores/knob';
 import { UsbComm } from '@/proto/comm.proto';
 
 import useIntervalAsync from '@/composables/useIntervalAsync';
-import usePlot from '@/composables/usePlot';
+import useChart from '@/composables/useChart';
+import useDataView from '@/composables/useDataView';
 
 import { radNorm, radToDeg } from '@/utils/math';
+import sliceLast from '@/utils/sliceLast';
 
 const { KnobConfig, MotorState } = UsbComm;
 
 const comm = useUsbComm();
 const knobStore = useKnobStore();
-const { motorState, knobConfig, angleTimeline, torqueTimeline } = storeToRefs(knobStore);
+const { motorState, knobConfig } = storeToRefs(knobStore);
 
 function toggleDemo(demo: boolean): void {
   if (demo) {
@@ -103,7 +103,6 @@ function changeMode(mode: UsbComm.KnobConfig.Mode): void {
   });
 }
 
-onMounted(() => knobStore.resetTimelines());
 onDeviceConnected(comm, () => knobStore.getKnobConfig());
 useIntervalAsync(() => knobStore.getMotorState(), 20);
 
@@ -113,66 +112,112 @@ const controlModeNames: Record<UsbComm.MotorState.ControlMode, string> = {
   [MotorState.ControlMode.VELOCITY]: '速度',
 };
 
-const timelineItemType: Record<ITimedState['type'], string> = {
-  current: '当前',
-  target: '目标',
-};
+const timeline = ref<UsbComm.IMotorState[]>([]);
+const ds = new DataSet();
 
-const { el: angleLineEl } = usePlot(angleTimeline, (el, data) => new Line(el, {
+watch(motorState, (state) => {
+  if (state) {
+    timeline.value = sliceLast([
+      ...timeline.value,
+      state,
+    ], 500);
+  }
+});
+
+const { el: angleLineEl } = useChart({
   autoFit: true,
-  animation: false,
-  data: data,
-  xField: 'timestamp',
-  yField: 'value',
-  seriesField: 'type',
-  tooltip: false,
-  xAxis: false,
-  yAxis: {
-    min: -1,
-    max: 1,
-  },
-  meta: {
-    timestamp: {
-      type: 'time',
-    },
-    value: {
-      formatter: (sin: number | undefined) => {
-        if (typeof sin == 'undefined') return;
-        return radToDeg(Math.asin(sin)).toFixed(2)
+  options: {
+    animate: false,
+    scales: {
+      timestamp: {
+        type: 'time',
+      },
+      currentAngleSin: {
+        min: -1,
+        max: 1,
+        formatter: sinToDeg,
+      },
+      targetAngleSin: {
+        min: -1,
+        max: 1,
+        formatter: sinToDeg,
       },
     },
-    type: {
-      formatter: (type: ITimedState['type']) => timelineItemType[type],
+    axes: {
+      timestamp: false,
+      targetAngleSin: false,
+    },
+    tooltip: false,
+    legends: {
+      custom: true,
+      position: 'top-right',
+      items: [
+        { name: '当前角度', value: 'currentAngleSin', marker: { symbol: 'circle', style: { fill: '#69b1ff' } } },
+        { name: '目标角度', value: 'targetAngleSin', marker: { symbol: 'circle', style: { fill: '#95de64' } } },
+      ],
     },
   },
-}));
+}, (chart) => {
+  chart.line().position('timestamp*currentAngleSin').color('#69b1ff');
+  chart.line().position('timestamp*targetAngleSin').color('#95de64');
+  useDataView(ds, timeline, chart).transform({
+    type: 'map',
+    callback: (row) => {
+      row.currentAngleSin = angleToSin(row.currentAngle);
+      row.targetAngleSin = row.controlMode == UsbComm.MotorState.ControlMode.ANGLE ? angleToSin(row.targetAngle) : undefined;
+      return row;
+    },
+  });
+});
 
-const { el: torqueLineEl } = usePlot(torqueTimeline, (el, data) => new Line(el, {
+function angleToSin(angle: number | undefined) {
+  return typeof angle == 'undefined' ? undefined : Math.sin(angle);
+}
+
+function sinToDeg(sin: number | undefined) {
+  return typeof sin == 'undefined' ? undefined : radToDeg(Math.asin(sin)).toFixed(2);
+}
+
+const { el: torqueLineEl } = useChart({
   autoFit: true,
-  animation: false,
-  data: data,
-  xField: 'timestamp',
-  yField: 'value',
-  seriesField: 'type',
-  tooltip: false,
-  xAxis: false,
-  yAxis: {
-    min: -110,
-    max: 110,
-  },
-  meta: {
-    timestamp: {
-      type: 'time',
-    },
-    value: {
-      formatter: (velocity: number | undefined) => {
-        if (typeof velocity == 'undefined') return;
-        return velocity.toFixed(3)
+  options: {
+    animate: false,
+    scales: {
+      timestamp: {
+        type: 'time',
+      },
+      currentVelocity: {
+        min: -100,
+        max: 100,
+        formatter: formatVelocity,
+      },
+      targetVelocity: {
+        min: -100,
+        max: 100,
+        formatter: formatVelocity,
       },
     },
-    type: {
-      formatter: (type: ITimedState['type']) => timelineItemType[type],
+    axes: {
+      timestamp: false,
+      targetVelocity: false,
+    },
+    tooltip: false,
+    legends: {
+      custom: true,
+      position: 'top-right',
+      items: [
+        { name: '当前速度', value: 'currentVelocity', marker: { symbol: 'circle', style: { fill: '#ffd666' } } },
+        { name: '目标力矩', value: 'targetVelocity', marker: { symbol: 'circle', style: { fill: '#ff7875' } } },
+      ],
     },
   },
-}));
+}, (chart) => {
+  chart.line().position('timestamp*currentVelocity').color('#ffd666');
+  chart.line().position('timestamp*targetVelocity').color('#ff7875');
+  useDataView(ds, timeline, chart);
+});
+
+function formatVelocity(velocity: number | undefined) {
+  return typeof velocity == 'undefined' ? undefined : velocity.toFixed(3);
+}
 </script>
