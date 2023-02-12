@@ -61,7 +61,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, watch } from 'vue';
+import { shallowRef, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import DataSet from '@antv/data-set';
 
@@ -112,15 +112,13 @@ const controlModeNames: Record<UsbComm.MotorState.ControlMode, string> = {
   [MotorState.ControlMode.VELOCITY]: '速度',
 };
 
-const timeline = ref<UsbComm.IMotorState[]>([]);
+const timeline = shallowRef<UsbComm.IMotorState[]>([]);
 const ds = new DataSet();
 
 watch(motorState, (state) => {
   if (state) {
-    timeline.value = sliceLast([
-      ...timeline.value,
-      state,
-    ], 500);
+    timeline.value.push(state);
+    timeline.value = sliceLast(timeline.value, 500);
   }
 });
 
