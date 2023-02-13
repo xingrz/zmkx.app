@@ -89,6 +89,23 @@
         </a-input-group>
       </a-form-item>
     </config-unit>
+
+    <config-unit title="指示灯" v-if="hasIndicator">
+      <a-form-item label="启用">
+        <a-switch :disabled="!indicator" :checked="indicator?.enable"
+          @update:checked="(enable: boolean) => rgbStore.setRgbIndicatorThottled({ enable })" />
+      </a-form-item>
+
+      <a-form-item label="活跃亮度" v-if="indicator?.enable">
+        <a-slider :value="indicator?.brightnessActive" :min="0" :max="255" :marks="{ 0: '0', 255: '255' }"
+          @update:value="(bri: number) => rgbStore.setRgbIndicatorThottled({ brightnessActive: bri })" />
+      </a-form-item>
+
+      <a-form-item label="非活跃亮度" v-if="indicator?.enable">
+        <a-slider :value="indicator?.brightnessInactive" :min="0" :max="255" :marks="{ 0: '0', 255: '255' }"
+          @update:value="(bri: number) => rgbStore.setRgbIndicatorThottled({ brightnessInactive: bri })" />
+      </a-form-item>
+    </config-unit>
   </config-panel>
 </template>
 
@@ -108,6 +125,7 @@ import { onDeviceConnected, useUsbComm } from '@/stores/usb';
 import { useVersionStore } from '@/stores/version';
 import { useRgbStore } from '@/stores/rgb';
 import { UsbComm } from '@/proto/comm.proto';
+import { storeToRefs } from 'pinia';
 
 const { Command } = UsbComm.RgbControl;
 const { Effect } = UsbComm.RgbState;
@@ -117,12 +135,14 @@ const versionStore = useVersionStore();
 const rgbStore = useRgbStore();
 const { sendRgbControl } = rgbStore;
 const rgbOn = computed(() => !!rgbStore.state?.on);
-const state = computed(() => rgbStore.state);
+const { state, indicator } = storeToRefs(rgbStore);
 const color = computed(() => rgbStore.state?.color);
 
 const hasFullControl = versionStore.useFeature('rgbFullControl');
+const hasIndicator = versionStore.useFeature('rgbIndicator');
 
 onDeviceConnected(comm, () => rgbStore.getRgbState());
+onDeviceConnected(comm, () => rgbStore.getRgbIndicator());
 
 function toggleRgb(on: boolean): void {
   if (on) {

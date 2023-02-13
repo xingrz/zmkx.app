@@ -42,6 +42,9 @@ export const useUsbComm = defineStore('usb', () => {
     if (res.payload == 'rgbState' && res.rgbState) {
       rgbStore.$patch({ state: res.rgbState });
     }
+    if (res.payload == 'rgbIndicator' && res.rgbIndicator) {
+      rgbStore.$patch({ indicator: res.rgbIndicator });
+    }
     if (res.payload == 'einkImage' && res.einkImage) {
       einkStore.$patch({ einkImage: res.einkImage });
     }
