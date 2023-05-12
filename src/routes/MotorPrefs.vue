@@ -1,7 +1,12 @@
 <template>
   <a-row :gutter="[16, 16]">
     <a-col :xs="24" :lg="16" :xl="12">
-      <a-collapse :active-key="expended" ghost>
+      <a-alert type="warning" v-if="knobStore.knobConfig?.demo">
+        <template #message>
+          请先关闭测试模式以进行设置。
+        </template>
+      </a-alert>
+      <a-collapse :active-key="expended" ghost v-else>
         <a-collapse-panel v-for="pref in knobStore.knobConfig?.prefs || []" :key="pref.layerId" :header="pref.layerName">
           <template #extra>
             <a-space>
