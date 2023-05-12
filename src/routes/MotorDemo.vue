@@ -2,12 +2,12 @@
   <p>
     <a-space direction="horizontal">
       <a-switch :checked="knobConfig?.demo" @update:checked="toggleDemo" />
-      演示模式
+      测试模式
     </a-space>
   </p>
   <p>
     <a-typography-text type="secondary">
-      开启演示模式后，你可以选择让电机工作在不同模式，体验神奇的 FOC。但与此同时，旋钮会暂停上报按键信息，以避免误操作。
+      该功能仅用于测试电机在不同模式下是否工作正常。开启后，旋钮会暂停上报按键信息，以避免误操作。
     </a-typography-text>
   </p>
 

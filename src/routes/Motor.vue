@@ -4,7 +4,7 @@
       <a-tab-pane key="prefs" tab="偏好设置">
         <motor-prefs />
       </a-tab-pane>
-      <a-tab-pane key="demo" tab="演示">
+      <a-tab-pane key="demo" tab="测试">
         <motor-demo />
       </a-tab-pane>
     </a-tabs>
