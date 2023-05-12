@@ -2,8 +2,7 @@
   <a-row :gutter="[16, 16]">
     <a-col :xs="24" :lg="16" :xl="12">
       <a-collapse :active-key="expended" ghost>
-        <a-collapse-panel v-for="pref in knobStore.knobConfig?.prefs || []" :key="pref.layerId"
-          :header="pref.layerName">
+        <a-collapse-panel v-for="pref in knobStore.knobConfig?.prefs || []" :key="pref.layerId" :header="pref.layerName">
           <template #extra>
             <a-space>
               自定义

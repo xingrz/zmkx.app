@@ -11,8 +11,7 @@
     </a-typography-text>
   </p>
 
-  <a-radio-group :value="knobConfig?.mode" button-style="solid" :disabled="!knobConfig?.demo"
-    @update:value="changeMode">
+  <a-radio-group :value="knobConfig?.mode" button-style="solid" :disabled="!knobConfig?.demo" @update:value="changeMode">
     <a-radio-button :value="KnobConfig.Mode.INERTIA">惯性</a-radio-button>
     <a-radio-button :value="KnobConfig.Mode.ENCODER">编码器</a-radio-button>
     <a-radio-button :value="KnobConfig.Mode.SPRING">摇杆</a-radio-button>
