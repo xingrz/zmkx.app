@@ -18,6 +18,7 @@
     <a-radio-button :value="KnobConfig.Mode.DAMPED">限位</a-radio-button>
     <a-radio-button :value="KnobConfig.Mode.SPIN">旋转</a-radio-button>
     <a-radio-button :value="KnobConfig.Mode.RATCHET">棘轮</a-radio-button>
+    <a-radio-button :value="KnobConfig.Mode.SWITCH" v-if="hasKnobProfileSwitch">开关</a-radio-button>
   </a-radio-group>
 
   <a-divider />
@@ -64,6 +65,7 @@ import { shallowRef, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import DataSet from '@antv/data-set';
 
+import { useVersionStore } from '@/stores/version';
 import { onDeviceConnected, useUsbComm } from '@/stores/usb';
 import { useKnobStore } from '@/stores/knob';
 import { UsbComm } from '@/proto/comm.proto';
@@ -80,6 +82,9 @@ const { KnobConfig, MotorState } = UsbComm;
 const comm = useUsbComm();
 const knobStore = useKnobStore();
 const { motorState, knobConfig } = storeToRefs(knobStore);
+
+const versionStore = useVersionStore();
+const hasKnobProfileSwitch = versionStore.useFeature('knobProfileSwitch');
 
 function toggleDemo(demo: boolean): void {
   if (demo) {
