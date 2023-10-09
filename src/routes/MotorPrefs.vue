@@ -22,6 +22,8 @@
                 <a-radio-button :value="KnobConfig.Mode.DISABLE">平滑</a-radio-button>
                 <a-radio-button :value="KnobConfig.Mode.INERTIA">惯性</a-radio-button>
                 <a-radio-button :value="KnobConfig.Mode.ENCODER">齿轮</a-radio-button>
+                <a-radio-button :value="KnobConfig.Mode.SPRING" v-if="hasKnobSpringReport">摇杆</a-radio-button>
+                <a-radio-button :value="KnobConfig.Mode.SWITCH" v-if="hasKnobProfileSwitch">开关</a-radio-button>
               </a-radio-group>
             </a-form-item>
             <a-form-item label="步数">
@@ -43,6 +45,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
 
+import { useVersionStore } from '@/stores/version';
 import { onDeviceConnected, useUsbComm } from '@/stores/usb';
 import { useKnobStore } from '@/stores/knob';
 import { UsbComm } from '@/proto/comm.proto';
@@ -51,6 +54,10 @@ const { KnobConfig } = UsbComm;
 
 const comm = useUsbComm();
 const knobStore = useKnobStore();
+
+const versionStore = useVersionStore();
+const hasKnobSpringReport = versionStore.useFeature('knobSpringReport');
+const hasKnobProfileSwitch = versionStore.useFeature('knobProfileSwitch');
 
 onDeviceConnected(comm, () => knobStore.getKnobConfig());
 
