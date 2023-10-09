@@ -18,7 +18,7 @@
           <a-form :label-col="{ style: { width: '100px' } }">
             <a-form-item label="模式">
               <a-radio-group :value="pref.mode" button-style="solid"
-                @update:value="(mode: UsbComm.KnobConfig.Mode) => handleChanged({ ...pref, mode })">
+                @update:value="(mode: UsbComm.KnobConfig.Mode) => handleChanged({ layerId: pref.layerId, active: true, mode })">
                 <a-radio-button :value="KnobConfig.Mode.DISABLE">平滑</a-radio-button>
                 <a-radio-button :value="KnobConfig.Mode.INERTIA">惯性</a-radio-button>
                 <a-radio-button :value="KnobConfig.Mode.ENCODER">齿轮</a-radio-button>
@@ -66,5 +66,5 @@ const expended = computed(() => (knobStore.knobConfig?.prefs || [])
 
 function handleChanged(pref: UsbComm.KnobConfig.IPref) {
   knobStore.updateKnobPrefThottled(pref);
-};
+}
 </script>
