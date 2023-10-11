@@ -96,7 +96,6 @@ onDeviceConnected(comm, () => versionStore.getVersion());
   line-height: 64px;
   text-align: center;
   margin-top: 16px;
-  color: #334;
 }
 
 .device {

@@ -1,5 +1,5 @@
 <template>
-  <div :class="$style.selector" v-if="!selected">
+  <div :class="$style.selector" v-if="!selected" :style="{ marginTop: '32px' }">
     <a-upload-dragger accept="image/*" :custom-request="handleFile" :show-upload-list="false">
       <p class="ant-upload-drag-icon">
         <project-outlined />
@@ -7,7 +7,7 @@
       <p class="ant-upload-text">点击选择图片，或将图片直接拖放到此处</p>
     </a-upload-dragger>
   </div>
-  <a-row type="flex" :gutter="[32, 32]" v-else>
+  <a-row type="flex" :gutter="[32, 32]" v-else :style="{ marginTop: '32px' }">
     <a-col flex="0">
       <img :src="preview" :class="$style.preview" />
     </a-col>

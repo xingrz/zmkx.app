@@ -71,7 +71,6 @@ async function connect(type = TransportType.USB_HID) {
   line-height: 120px;
   text-align: center;
   margin-top: 16px;
-  color: #334;
 }
 
 .unsupported {
