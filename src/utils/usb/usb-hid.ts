@@ -78,21 +78,12 @@ export class UsbCommHidTransport implements IUsbCommTransport<HIDDevice> {
     const len = data[0];
     this.queueIn = concat(this.queueIn, data.subarray(1, 1 + len));
 
-    if (len == USB_COMM_PAYLOAD_SIZE) {
-      return;
-    }
-
-    if (!this.queueIn) {
-      return;
-    }
-
     try {
       const res = UsbComm.MessageD2H.decodeDelimited(this.queueIn);
+      this.queueIn = undefined;
       this.onMessage(res);
-    } catch (e) {
-      console.error('Failed decoding response', e);
+    } catch (ignored) {
     }
-    this.queueIn = undefined;
   }
 
 }
