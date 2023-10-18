@@ -6,22 +6,19 @@
     <template v-else>
       <landing-page />
     </template>
-    <div :class="$style.theme">
-      <a-tooltip placement="left">
+    <a-space :class="$style.theme">
+      <a-tooltip placement="bottomRight">
         <template #title>
           <span v-if="themeStore.darkMode">切换为浅色模式</span>
           <span v-else>切换为深色模式</span>
         </template>
-        <a-switch :checked="themeStore.darkMode" @update:checked="themeStore.setDarkMode">
-          <template #checkedChildren>
-            <bulb-filled />
-          </template>
-          <template #unCheckedChildren>
+        <a-button type="text" shape="circle" @click="themeStore.toggleDarkMode">
+          <template #icon>
             <bulb-outlined />
           </template>
-        </a-switch>
+        </a-button>
       </a-tooltip>
-    </div>
+    </a-space>
   </a-config-provider>
 </template>
 
@@ -31,7 +28,6 @@ import { computed, watch } from 'vue';
 import { theme } from 'ant-design-vue';
 import type { ThemeConfig } from 'ant-design-vue/es/config-provider/context';
 import {
-  BulbFilled,
   BulbOutlined,
 } from '@ant-design/icons-vue';
 

@@ -26,7 +26,8 @@ export const useThemeStore = defineStore('theme', () => {
     }
   });
 
-  function setDarkMode(enabled: boolean): void {
+  function toggleDarkMode(): void {
+    const enabled = !darkMode.value;
     if (globalPreferDark.value == enabled) {
       localPreferDark.value = undefined;
     } else {
@@ -44,6 +45,6 @@ export const useThemeStore = defineStore('theme', () => {
 
   return {
     darkMode,
-    setDarkMode,
+    toggleDarkMode,
   };
 });
