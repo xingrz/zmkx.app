@@ -9,7 +9,7 @@
           </template>
         </a-button>
         <a-button v-else shape="round" size="large" block @click="comm.close">
-          断开设备
+          {{ t('disconnect') }}
         </a-button>
       </div>
       <a-menu :selected-keys="page" mode="inline" :class="$style.nav" @select="navigate">
@@ -17,26 +17,26 @@
           <template #icon>
             <info-circle-outlined />
           </template>
-          关于
+          {{ t('about') }}
         </a-menu-item>
         <a-menu-item key="rgb" v-if="!version?.features || version.features.rgb">
           <template #icon>
             <alert-outlined />
           </template>
-          灯效
+          {{ t('rgb') }}
         </a-menu-item>
         <a-menu-item key="eink" v-if="!version?.features || version.features.eink">
           <template #icon>
             <project-outlined />
           </template>
-          墨水屏
+          {{ t('eink') }}
         </a-menu-item>
         <a-menu-item key="motor" v-if="!version?.features || version.features.knob">
           <template #icon>
             <loading-outlined v-if="knobStore.knobConfig?.demo" />
             <loading3-quarters-outlined v-else />
           </template>
-          电机
+          {{ t('motor') }}
         </a-menu-item>
       </a-menu>
     </a-layout-sider>
@@ -52,6 +52,7 @@
 import { computed, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import {
   DisconnectOutlined,
   InfoCircleOutlined,
@@ -63,6 +64,8 @@ import {
 import { useUsbComm, onDeviceConnected } from '@/stores/usb';
 import { useVersionStore } from '@/stores/version';
 import { useKnobStore } from '@/stores/knob';
+
+const { t } = useI18n();
 
 const collapsed = ref(false);
 
@@ -128,3 +131,24 @@ onDeviceConnected(comm, () => versionStore.getVersion());
   }
 }
 </style>
+
+<i18n lang="yaml">
+zh-Hans:
+  disconnect: 断开设备
+  about: 关于
+  rgb: 灯效
+  eink: 墨水屏
+  motor: 旋钮
+zh-Hant:
+  disconnect: 斷開裝置
+  about: 關於
+  rgb: 燈效
+  eink: 墨水屏
+  motor: 旋鈕
+en:
+  disconnect: Disconnect
+  about: About
+  rgb: RGB
+  eink: E-Ink
+  motor: Knob
+</i18n>

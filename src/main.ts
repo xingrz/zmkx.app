@@ -1,4 +1,5 @@
 import { createApp } from 'vue';
+import { createI18n } from 'vue-i18n';
 import { createPinia } from 'pinia';
 import { createRouter, createMemoryHistory } from 'vue-router';
 
@@ -9,6 +10,15 @@ import App from '@/App.vue';
 
 const app = createApp(App);
 app.use(Antd);
+app.use(createI18n({
+  fallbackLocale: {
+    'zh-CN': ['zh-Hans'],
+    'zh-TW': ['zh-Hant'],
+    'zh-HK': ['zh-Hant'],
+    'zh-Hant': ['zh-Hans'],
+    'default': ['zh-Hans'],
+  },
+}));
 app.use(createPinia());
 app.use(createRouter({
   history: createMemoryHistory(),

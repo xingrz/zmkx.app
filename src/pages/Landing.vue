@@ -2,11 +2,9 @@
   <div :class="$style.landing">
     <div :class="$style.logo">ZMKX</div>
 
-    <a-alert v-if="!supportWebHid" message="浏览器不受支持" type="error" :class="$style.unsupported">
+    <a-alert v-if="!supportWebHid" :message="t('unsupported')" type="error" :class="$style.unsupported">
       <template #description>
-        <p>ZMKX 需要浏览器支持 WebHID API 支持才能正常工作。</p>
-        <p>建议使用最新版本的 <a :href="URL_CHROME" target="_blank">Google Chrome</a> 或 <a :href="URL_EDGE"
-            target="_blank">Microsoft Edge</a>。</p>
+        <div v-html="t('unsupported-hint')" />
       </template>
     </a-alert>
     <a-space v-else-if="comm.devices.length > 0" direction="vertical" :class="$style.connect">
@@ -17,12 +15,12 @@
       </a-button>
       <a-divider key="divider" />
       <a-button key="add-more" shape="round" :loading="connecting" :class="$style.device" @click="connect">
-        添加更多设备
+        {{ t('add-more-device') }}
       </a-button>
     </a-space>
     <template v-else>
       <a-button shape="round" size="large" type="primary" :loading="connecting" :class="$style.device" @click="connect">
-        添加设备
+        {{ t('add-device') }}
       </a-button>
     </template>
 
@@ -34,6 +32,7 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { message } from 'ant-design-vue';
 import {
   ArrowRightOutlined,
@@ -41,9 +40,9 @@ import {
 
 import { useUsbComm } from '@/stores/usb';
 
+const { t } = useI18n();
+
 const supportWebHid = !!navigator.hid;
-const URL_CHROME = 'https://www.google.com/chrome';
-const URL_EDGE = 'https://www.microsoft.com/edge';
 
 const comm = useUsbComm();
 
@@ -58,7 +57,7 @@ async function connect() {
       if (e.message.includes('No device selected')) {
         return;
       }
-      message.error('设备连接失败');
+      message.error(t('connect-failed'));
     }
   } finally {
     connecting.value = false;
@@ -105,3 +104,30 @@ async function connect() {
   color: #999;
 }
 </style>
+
+<i18n lang="yaml">
+zh-Hans:
+  add-device: 添加设备
+  add-more-device: 添加更多设备
+  connect-failed: 设备连接失败
+  unsupported: 浏览器不受支持
+  unsupported-hint: |
+    <p>ZMKX 需要浏览器支持 WebHID API 支持才能正常工作。</p>
+    <p>建议使用最新版本的 <a href="https://www.google.com/chrome" target="_blank">Google Chrome</a> 或 <a href="https://www.microsoft.com/edge" target="_blank">Microsoft Edge</a>。</p>
+zh-Hant:
+  add-device: 新增裝置
+  add-more-device: 新增更多裝置
+  connect-failed: 裝置連線失敗
+  unsupported: 瀏覽器不支援
+  unsupported-hint: |
+    <p>ZMKX 需要瀏覽器支援 WebHID API 才能正常運作。</p>
+    <p>建議使用最新版本的 <a href="https://www.google.com/chrome" target="_blank">Google Chrome</a> 或 <a href="https://www.microsoft.com/edge" target="_blank">Microsoft Edge</a>。</p>
+en:
+  add-device: Add Device
+  add-more-device: Add More Devices
+  connect-failed: Device Connection Failed
+  unsupported: Browser Not Supported
+  unsupported-hint: |
+    <p>ZMKX requires browser support for the WebHID API to function correctly.</p>
+    <p>We recommend using the latest version of <a href="https://www.google.com/chrome">Google Chrome</a> or <a href="https://www.microsoft.com/edge">Microsoft Edge</a>.</p>
+</i18n>

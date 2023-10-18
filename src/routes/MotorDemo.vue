@@ -2,51 +2,52 @@
   <p>
     <a-space direction="horizontal">
       <a-switch :checked="knobConfig?.demo" @update:checked="toggleDemo" />
-      测试模式
+      {{ t('demo') }}
     </a-space>
   </p>
   <p>
     <a-typography-text type="secondary">
-      该功能仅用于测试电机在不同模式下是否工作正常。开启后，旋钮会暂停上报按键信息，以避免误操作。
+      {{ t('demo-hint') }}
     </a-typography-text>
   </p>
 
   <a-radio-group :value="knobConfig?.mode" button-style="solid" :disabled="!knobConfig?.demo" @update:value="changeMode">
-    <a-radio-button :value="KnobConfig.Mode.INERTIA">惯性</a-radio-button>
-    <a-radio-button :value="KnobConfig.Mode.ENCODER">编码器</a-radio-button>
-    <a-radio-button :value="KnobConfig.Mode.SPRING">摇杆</a-radio-button>
-    <a-radio-button :value="KnobConfig.Mode.DAMPED">限位</a-radio-button>
-    <a-radio-button :value="KnobConfig.Mode.SPIN">旋转</a-radio-button>
-    <a-radio-button :value="KnobConfig.Mode.RATCHET">棘轮</a-radio-button>
-    <a-radio-button :value="KnobConfig.Mode.SWITCH" v-if="hasKnobProfileSwitch">开关</a-radio-button>
+    <a-radio-button :value="KnobConfig.Mode.INERTIA">{{ t('mode-inertia') }}</a-radio-button>
+    <a-radio-button :value="KnobConfig.Mode.ENCODER">{{ t('mode-encoder') }}</a-radio-button>
+    <a-radio-button :value="KnobConfig.Mode.SPRING">{{ t('mode-spring') }}</a-radio-button>
+    <a-radio-button :value="KnobConfig.Mode.DAMPED">{{ t('mode-damped') }}</a-radio-button>
+    <a-radio-button :value="KnobConfig.Mode.SPIN">{{ t('mode-spin') }}</a-radio-button>
+    <a-radio-button :value="KnobConfig.Mode.RATCHET">{{ t('mode-ratchet') }}</a-radio-button>
+    <a-radio-button :value="KnobConfig.Mode.SWITCH" v-if="hasKnobProfileSwitch">{{ t('mode-switch') }}</a-radio-button>
   </a-radio-group>
 
   <a-divider />
 
   <a-row v-if="motorState" :gutter="[8, 8]">
     <a-col :xs="12" :md="8" :lg="4">
-      <a-statistic title="控制模式" :value="controlModeNames[motorState.controlMode]" :style="{ textAlign: 'right' }" />
-    </a-col>
-    <a-col :xs="12" :md="8" :lg="4">
-      <a-statistic title="当前角度" :precision="1" :value="radToDeg(radNorm(motorState.currentAngle))" suffix="°"
+      <a-statistic :title="t('control-mode')" :value="controlModeNames[motorState.controlMode]"
         :style="{ textAlign: 'right' }" />
     </a-col>
     <a-col :xs="12" :md="8" :lg="4">
-      <a-statistic title="当前速度" :precision="2" :value="motorState.currentVelocity" suffix="rad/s"
+      <a-statistic :title="t('current-angle')" :precision="1" :value="radToDeg(radNorm(motorState.currentAngle))"
+        suffix="°" :style="{ textAlign: 'right' }" />
+    </a-col>
+    <a-col :xs="12" :md="8" :lg="4">
+      <a-statistic :title="t('current-velocity')" :precision="2" :value="motorState.currentVelocity" suffix="rad/s"
         :style="{ textAlign: 'right' }" />
     </a-col>
     <a-col :xs="12" :md="8" :lg="4">
-      <a-statistic title="目标角度" :precision="1"
+      <a-statistic :title="t('target-angle')" :precision="1"
         :value="motorState.controlMode == MotorState.ControlMode.ANGLE ? radToDeg(radNorm(motorState.targetAngle)) : `---`"
         :suffix="motorState.controlMode == MotorState.ControlMode.ANGLE ? '°' : undefined"
         :style="{ textAlign: 'right' }" />
     </a-col>
     <a-col :xs="12" :md="8" :lg="4">
-      <a-statistic title="目标速度" :precision="2" :value="motorState.targetVelocity" suffix="rad/s"
+      <a-statistic :title="t('target-velocity')" :precision="2" :value="motorState.targetVelocity" suffix="rad/s"
         :style="{ textAlign: 'right' }" />
     </a-col>
     <a-col :xs="12" :md="8" :lg="4">
-      <a-statistic title="目标电压" :precision="3" :value="motorState.targetVoltage" suffix="V"
+      <a-statistic :title="t('target-voltage')" :precision="3" :value="motorState.targetVoltage" suffix="V"
         :style="{ textAlign: 'right' }" />
     </a-col>
   </a-row>
@@ -61,7 +62,8 @@
 </template>
 
 <script lang="ts" setup>
-import { shallowRef, watch } from 'vue';
+import { computed, shallowRef, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import DataSet from '@antv/data-set';
 
@@ -76,6 +78,8 @@ import useDataView from '@/composables/useDataView';
 
 import { radNorm, radToDeg } from '@/utils/math';
 import sliceLast from '@/utils/sliceLast';
+
+const { t } = useI18n();
 
 const { KnobConfig, MotorState } = UsbComm;
 
@@ -110,11 +114,11 @@ function changeMode(mode: UsbComm.KnobConfig.Mode): void {
 onDeviceConnected(comm, () => knobStore.getKnobConfig());
 useIntervalAsync(() => knobStore.getMotorState(), 20);
 
-const controlModeNames: Record<UsbComm.MotorState.ControlMode, string> = {
-  [MotorState.ControlMode.TORQUE]: '力矩',
-  [MotorState.ControlMode.ANGLE]: '角度',
-  [MotorState.ControlMode.VELOCITY]: '速度',
-};
+const controlModeNames = computed<Record<UsbComm.MotorState.ControlMode, string>>(() => ({
+  [MotorState.ControlMode.TORQUE]: t('control-mode-torque'),
+  [MotorState.ControlMode.ANGLE]: t('control-mode-angle'),
+  [MotorState.ControlMode.VELOCITY]: t('control-mode-velocity'),
+}));
 
 const timeline = shallowRef<UsbComm.IMotorState[]>([]);
 const ds = new DataSet();
@@ -154,8 +158,8 @@ const { el: angleLineEl } = useChart({
       custom: true,
       position: 'top-right',
       items: [
-        { name: '当前角度', value: 'currentAngleSin', marker: { symbol: 'circle', style: { fill: '#69b1ff' } } },
-        { name: '目标角度', value: 'targetAngleSin', marker: { symbol: 'circle', style: { fill: '#95de64' } } },
+        { name: t('current-angle'), value: 'currentAngleSin', marker: { symbol: 'circle', style: { fill: '#69b1ff' } } },
+        { name: t('target-angle'), value: 'targetAngleSin', marker: { symbol: 'circle', style: { fill: '#95de64' } } },
       ],
     },
   },
@@ -208,8 +212,8 @@ const { el: torqueLineEl } = useChart({
       custom: true,
       position: 'top-right',
       items: [
-        { name: '当前速度', value: 'currentVelocity', marker: { symbol: 'circle', style: { fill: '#ffd666' } } },
-        { name: '目标力矩', value: 'targetVelocity', marker: { symbol: 'circle', style: { fill: '#ff7875' } } },
+        { name: t('current-velocity'), value: 'currentVelocity', marker: { symbol: 'circle', style: { fill: '#ffd666' } } },
+        { name: t('target-torque'), value: 'targetVelocity', marker: { symbol: 'circle', style: { fill: '#ff7875' } } },
       ],
     },
   },
@@ -223,3 +227,66 @@ function formatVelocity(velocity: number | undefined) {
   return typeof velocity == 'undefined' ? undefined : velocity.toFixed(3);
 }
 </script>
+
+<i18n lang="yaml">
+zh-Hans:
+  demo: 测试模式
+  demo-hint: 该功能仅用于测试电机在不同模式下是否工作正常。开启后，旋钮会暂停上报按键信息，以避免误操作。
+  mode-inertia: 惯性
+  mode-encoder: 编码器
+  mode-spring: 摇杆
+  mode-damped: 限位
+  mode-spin: 旋转
+  mode-ratchet: 棘轮
+  mode-switch: 开关
+  control-mode: 控制模式
+  control-mode-torque: 力矩
+  control-mode-angle: 角度
+  control-mode-velocity: 速度
+  current-angle: 当前角度
+  current-velocity: 当前速度
+  target-angle: 目标角度
+  target-velocity: 目标速度
+  target-voltage: 目标电压
+  target-torque: 目标力矩
+zh-Hant:
+  demo: 測試模式
+  demo-hint: 這個功能僅用於測試馬達在不同模式下是否正常運作。啟用後，旋鈕將暫停回報按鍵，以避免誤操作。
+  mode-inertia: 慣性
+  mode-encoder: 編碼器
+  mode-spring: 搖桿
+  mode-damped: 限位
+  mode-spin: 旋轉
+  mode-ratchet: 齒輪
+  mode-switch: 開關
+  control-mode: 控制模式
+  control-mode-torque: 扭矩
+  control-mode-angle: 角度
+  control-mode-velocity: 速度
+  current-angle: 當前角度
+  current-velocity: 當前速度
+  target-angle: 目標角度
+  target-velocity: 目標速度
+  target-voltage: 目標電壓
+  target-torque: 目標扭矩
+en:
+  demo: Test Mode
+  demo-hint: This feature is only for testing the motor in different modes. When enabled, the knob will pause reporting keys to prevent accidental input.
+  mode-inertia: Inertia
+  mode-encoder: Encoder
+  mode-spring: Joystick
+  mode-damped: Damped
+  mode-spin: Spin
+  mode-ratchet: Ratchet
+  mode-switch: Switch
+  control-mode: Control Mode
+  control-mode-torque: Torque
+  control-mode-angle: Angle
+  control-mode-velocity: Velocity
+  current-angle: Current Angle
+  current-velocity: Current Velocity
+  target-angle: Target Angle
+  target-velocity: Target Velocity
+  target-voltage: Target Voltage
+  target-torque: Target Torque
+</i18n>
