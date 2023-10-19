@@ -1,30 +1,11 @@
-import { computed, ref, watch } from 'vue';
+import { computed } from 'vue';
 import { defineStore } from 'pinia';
 import useMatchMedia from '@/composables/useMatchMedia';
+import useLocalStorage from '@/composables/useLocalStorage';
 
 export const useThemeStore = defineStore('theme', () => {
   const globalPreferDark = useMatchMedia('(prefers-color-scheme: dark)');
-
-  const localPreferDark = ref(getLocalPreferDark());
-
-  function getLocalPreferDark(): boolean | undefined {
-    const value = localStorage.getItem('darkMode');
-    if (value == '1') {
-      return true;
-    } else if (value == '0') {
-      return false;
-    } else {
-      return undefined;
-    }
-  }
-
-  watch(localPreferDark, (value) => {
-    if (typeof value != 'undefined') {
-      localStorage.setItem('darkMode', value ? '1' : '0');
-    } else {
-      localStorage.removeItem('darkMode');
-    }
-  });
+  const localPreferDark = useLocalStorage<boolean | undefined>('darkMode', undefined);
 
   function toggleDarkMode(): void {
     const enabled = !darkMode.value;
