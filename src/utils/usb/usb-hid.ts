@@ -24,6 +24,8 @@ export class UsbCommHidTransport implements IUsbCommTransport<HIDDevice> {
       this.onDisconnected();
       this.device = undefined;
     });
+
+    this.handleInputEvent = this.handleInputEvent.bind(this);
   }
 
   async open(): Promise<HIDDevice | undefined> {
@@ -43,9 +45,7 @@ export class UsbCommHidTransport implements IUsbCommTransport<HIDDevice> {
     this.device = reports[0];
     this.reportOut = reports[2].reportId;
 
-    this.device.addEventListener('inputreport', (ev) => {
-      this.handleInput(new Uint8Array(ev.data.buffer));
-    });
+    this.device.addEventListener('inputreport', this.handleInputEvent);
 
     return this.device;
   }
@@ -55,6 +55,7 @@ export class UsbCommHidTransport implements IUsbCommTransport<HIDDevice> {
     this.device = undefined;
     if (device) {
       this.onDisconnected();
+      device.removeEventListener('inputreport', this.handleInputEvent);
       await device.close();
     }
   }
@@ -72,6 +73,10 @@ export class UsbCommHidTransport implements IUsbCommTransport<HIDDevice> {
       out.set(buf, 1);
       await this.device.sendReport(this.reportOut, out);
     }
+  }
+
+  private handleInputEvent(ev: HIDInputReportEvent): void {
+    this.handleInput(new Uint8Array(ev.data.buffer));
   }
 
   private handleInput(data: Uint8Array): void {
