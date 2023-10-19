@@ -11,8 +11,7 @@
       </template>
     </a-alert>
     <div v-else :class="$style.connect">
-      <a-button shape="round" size="large" type="primary" :loading="connecting"
-        @click="() => connect(TransportType.USB_HID)">
+      <a-button shape="round" size="large" type="primary" :loading="connecting" @click="connect">
         连接设备
       </a-button>
     </div>
@@ -27,7 +26,7 @@
 import { ref } from 'vue';
 import { message } from 'ant-design-vue';
 
-import { useUsbComm, TransportType } from '@/stores/usb';
+import { useUsbComm } from '@/stores/usb';
 
 const supportWebHid = !!navigator.hid;
 const URL_CHROME = 'https://www.google.com/chrome';
@@ -36,10 +35,10 @@ const URL_EDGE = 'https://www.microsoft.com/edge';
 const comm = useUsbComm();
 
 const connecting = ref(false);
-async function connect(type = TransportType.USB_HID) {
+async function connect() {
   try {
     connecting.value = true;
-    await comm.open(type);
+    await comm.open();
   } catch (e) {
     console.error(e);
     if (e instanceof Error) {
@@ -53,7 +52,6 @@ async function connect(type = TransportType.USB_HID) {
   }
 }
 </script>
-
 
 <style lang="scss" module>
 .landing {

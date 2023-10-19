@@ -2,7 +2,6 @@ import { onMounted, ref, toRef, watch } from 'vue';
 import { defineStore } from 'pinia';
 
 import type { IUsbCommDevice, IUsbCommTransport } from '@/utils/usb/usb';
-import { UsbCommVendorTransport } from '@/utils/usb/usb-vendor';
 import { UsbCommHidTransport } from '@/utils/usb/usb-hid';
 
 import type { UsbComm } from '@/proto/comm.proto';
@@ -24,7 +23,9 @@ export const useUsbComm = defineStore('usb', () => {
   const rgbStore = useRgbStore();
   const einkStore = useEinkStore();
 
-  let comm: IUsbCommTransport<IUsbCommDevice> | undefined;
+  const comm: IUsbCommTransport<IUsbCommDevice> = new UsbCommHidTransport(
+    handleTransferIn,
+    handleDisconnected);
 
   function handleTransferIn(res: UsbComm.MessageD2H): void {
     if (res.payload == 'version' && res.version) {
@@ -58,14 +59,8 @@ export const useUsbComm = defineStore('usb', () => {
     einkStore.$resetState();
   }
 
-  async function open(type: TransportType = TransportType.USB_VENDOR): Promise<void> {
-    if (type == TransportType.USB_VENDOR) {
-      comm = new UsbCommVendorTransport(handleTransferIn, handleDisconnected);
-    } else if (type == TransportType.USB_HID) {
-      comm = new UsbCommHidTransport(handleTransferIn, handleDisconnected);
-    } else {
-      throw new Error(`Unsupported transport: ${TransportType[type]}`);
-    }
+  async function open(): Promise<void> {
+    comm = new UsbCommHidTransport(handleTransferIn, handleDisconnected);
 
     device.value = await comm.open();
     if (!device.value) {
@@ -74,11 +69,11 @@ export const useUsbComm = defineStore('usb', () => {
   }
 
   async function close(): Promise<void> {
-    await comm?.close();
+    await comm.close();
   }
 
   async function send(message: UsbComm.IMessageH2D) {
-    await comm?.send(message);
+    await comm.send(message);
   }
 
   function $resetState(): void {
