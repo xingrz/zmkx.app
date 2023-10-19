@@ -17,6 +17,7 @@ export enum TransportType {
 
 export const useUsbComm = defineStore('usb', () => {
   const device = ref<IUsbCommDevice>();
+  const devices = ref<IUsbCommDevice[]>([]);
 
   const versionStore = useVersionStore();
   const knobStore = useKnobStore();
@@ -24,8 +25,13 @@ export const useUsbComm = defineStore('usb', () => {
   const einkStore = useEinkStore();
 
   const comm: IUsbCommTransport<IUsbCommDevice> = new UsbCommHidTransport(
+    handleList,
     handleTransferIn,
     handleDisconnected);
+
+  function handleList(devs: IUsbCommDevice[]): void {
+    devices.value = devs;
+  }
 
   function handleTransferIn(res: UsbComm.MessageD2H): void {
     if (res.payload == 'version' && res.version) {
@@ -59,10 +65,15 @@ export const useUsbComm = defineStore('usb', () => {
     einkStore.$resetState();
   }
 
-  async function open(): Promise<void> {
-    comm = new UsbCommHidTransport(handleTransferIn, handleDisconnected);
+  async function pick(dev: IUsbCommDevice): Promise<void> {
+    device.value = await comm.pick(dev);
+    if (!device.value) {
+      throw new Error('Device open failed');
+    }
+  }
 
-    device.value = await comm.open();
+  async function request(): Promise<void> {
+    device.value = await comm.request();
     if (!device.value) {
       throw new Error('Device not supported');
     }
@@ -82,7 +93,9 @@ export const useUsbComm = defineStore('usb', () => {
 
   return {
     device,
-    open,
+    devices,
+    pick,
+    request,
     close,
     send,
     $resetState,

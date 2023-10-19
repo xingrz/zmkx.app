@@ -6,15 +6,25 @@
       <template #description>
         <p>ZMKX 需要浏览器支持 WebHID API 支持才能正常工作。</p>
         <p>建议使用最新版本的 <a :href="URL_CHROME" target="_blank">Google Chrome</a> 或 <a :href="URL_EDGE"
-            target="_blank">Microsoft
-            Edge</a>。</p>
+            target="_blank">Microsoft Edge</a>。</p>
       </template>
     </a-alert>
-    <div v-else :class="$style.connect">
-      <a-button shape="round" size="large" type="primary" :loading="connecting" @click="connect">
-        连接设备
+    <a-space v-else-if="comm.devices.length > 0" direction="vertical" :class="$style.connect">
+      <a-button v-for="device of comm.devices" shape="round" size="large" type="text" block :class="$style.device"
+        @click="() => comm.pick(device)">
+        {{ device.productName }}
+        <arrow-right-outlined />
       </a-button>
-    </div>
+      <a-divider key="divider" />
+      <a-button key="add-more" shape="round" :loading="connecting" :class="$style.device" @click="connect">
+        添加更多设备
+      </a-button>
+    </a-space>
+    <template v-else>
+      <a-button shape="round" size="large" type="primary" :loading="connecting" :class="$style.device" @click="connect">
+        添加设备
+      </a-button>
+    </template>
 
     <footer :class="$style.footer">
       Copyright © XiNGRZ 2022-2023
@@ -25,6 +35,9 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { message } from 'ant-design-vue';
+import {
+  ArrowRightOutlined,
+} from '@ant-design/icons-vue';
 
 import { useUsbComm } from '@/stores/usb';
 
@@ -38,7 +51,7 @@ const connecting = ref(false);
 async function connect() {
   try {
     connecting.value = true;
-    await comm.open();
+    await comm.request();
   } catch (e) {
     console.error(e);
     if (e instanceof Error) {
@@ -79,6 +92,10 @@ async function connect() {
   margin-top: 50px;
   width: 400px;
   text-align: center;
+}
+
+.device {
+  text-align: left;
 }
 
 .footer {

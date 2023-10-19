@@ -1,4 +1,4 @@
-import type { IUsbCommTransport, OnDisconnected, OnMessage } from './usb';
+import type { IUsbCommTransport, OnDisconnected, OnList, OnMessage } from './usb';
 import { UsbComm } from '@/proto/comm.proto';
 
 const USB_VID = 0x1d50;
@@ -17,37 +17,62 @@ export class UsbCommHidTransport implements IUsbCommTransport<HIDDevice> {
   private queueIn: Uint8Array | undefined;
 
   constructor(
+    private readonly onList: OnList,
     private readonly onMessage: OnMessage,
     private readonly onDisconnected: OnDisconnected,
   ) {
-    navigator.hid?.addEventListener('disconnect', () => {
-      this.onDisconnected();
-      this.device = undefined;
+    navigator.hid?.addEventListener('connect', () => {
+      this.refreshList();
     });
+
+    navigator.hid?.addEventListener('disconnect', ({ device }) => {
+      this.refreshList();
+      if (this.device == device) {
+        this.onDisconnected();
+        this.device = undefined;
+      }
+    });
+
+    this.refreshList();
 
     this.handleInputEvent = this.handleInputEvent.bind(this);
   }
 
-  async open(): Promise<HIDDevice | undefined> {
+  private async refreshList(): Promise<void> {
+    const devices = await navigator.hid?.getDevices();
+    this.onList(devices.filter(filterDevice));
+  }
+
+  async pick(device: HIDDevice): Promise<HIDDevice | undefined> {
+    if (!filterDevice(device)) {
+      return undefined;
+    }
+
+    await device.open();
+
+    this.device = device;
+    this.reportOut = device.collections![0].outputReports![0].reportId;
+
+    this.device.addEventListener('inputreport', this.handleInputEvent);
+
+    return this.device;
+  }
+
+  async request(): Promise<HIDDevice | undefined> {
     const devices = await navigator.hid?.requestDevice({
       filters: [
         { vendorId: USB_VID, productId: USB_PID },
       ],
     });
 
-    const reports = findDevice(devices);
-    if (!reports) {
+    this.refreshList();
+
+    const device = devices.filter(filterDevice)[0];
+    if (!device) {
       return undefined;
     }
 
-    await reports[0].open();
-
-    this.device = reports[0];
-    this.reportOut = reports[2].reportId;
-
-    this.device.addEventListener('inputreport', this.handleInputEvent);
-
-    return this.device;
+    return await this.pick(device);
   }
 
   async close(): Promise<void> {
@@ -93,14 +118,14 @@ export class UsbCommHidTransport implements IUsbCommTransport<HIDDevice> {
 
 }
 
-function findDevice(devices: HIDDevice[]): [HIDDevice, HIDReportInfo, HIDReportInfo] | undefined {
-  for (const device of devices) {
-    for (const { usagePage, inputReports, outputReports } of device.collections) {
-      if (usagePage == USB_COMM_USAGE_PAGE && inputReports?.length == 1 && outputReports?.length == 1) {
-        return [device, inputReports[0], outputReports[0]];
-      }
-    }
-  }
+function filterDevice(device: HIDDevice): boolean {
+  return device.vendorId == USB_VID &&
+    device.productId == USB_PID &&
+    device.collections.some(({ usagePage, inputReports, outputReports }) =>
+      usagePage == USB_COMM_USAGE_PAGE &&
+      inputReports?.length == 1 &&
+      outputReports?.length == 1
+    );
 }
 
 function concat(head: Uint8Array | undefined, tail: Uint8Array): Uint8Array {
